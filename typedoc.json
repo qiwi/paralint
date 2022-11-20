@@ -1,5 +1,5 @@
 {
-  "name": "blank-ts-repo",
+  "name": "paralint",
   "out": "./docs",
   "exclude": ["src/test", "**/node_modules/**"],
   "externalPattern": ["**/node_modules/**"],
