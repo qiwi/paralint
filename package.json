@@ -54,7 +54,6 @@
     "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-qiwi": "^1.17.4",
-    "microbundle": "^0.15.0",
     "prettier": "^2.7.1",
     "prettier-config-qiwi": "^1.7.2",
     "terser": "^5.14.2",
