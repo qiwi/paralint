@@ -1,10 +1,10 @@
-import  { expect } from "earljs"
-import { test } from "uvu"
+import { expect } from 'earljs'
+import { test } from 'uvu'
 
-import { foo } from '../../main/ts/index'
+import { main } from '../../main/ts/index'
 
-test('index - foo() result equals bar', () => {
-  expect(foo()).toEqual('bar')
+test('test', async () => {
+  expect(await main()).toMatchSnapshot()
 })
 
 test.run()

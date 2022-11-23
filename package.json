@@ -7,6 +7,7 @@
     "access": "public"
   },
   "description": "Runner to invoke ESLint in parallel",
+  "type": "module",
   "exports": {
     ".": "./target/es6/index.js"
   },
@@ -14,9 +15,10 @@
   "typescript": {
     "definition": "./target/es6/index.d.ts"
   },
+  "bin": "./target/es6/cli.js",
   "scripts": {
     "clean": "rm -rf target buildcache docs coverage buildstamp.json",
-    "lint": "eslint src/**/*.{ts,js}",
+    "lint": "eslint src",
     "lint:fix": "yarn lint --fix",
     "format": "prettier --write \"src/**/*\"",
     "test": "yarn lint && yarn test:unit && yarn test:depcheck && yarn test:depaudit",
@@ -42,6 +44,10 @@
   },
   "resolutions": {},
   "dependencies": {
+    "@npmcli/promise-spawn": "^6.0.1",
+    "dargs": "^8.1.0",
+    "fast-glob": "^3.2.12",
+    "minimist": "^1.2.7",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
