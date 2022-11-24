@@ -7,25 +7,33 @@ import { stat, writeFile } from 'node:fs/promises'
 
 type ESLintFormat = 'stylish' | 'compact' | 'json'
 
+export type ESLintResult = {
+  stdout: string
+  stderr: string
+}
+
+const getExtensions = (extension: string | string[]) => {
+  return `.(${(Array.isArray(extension) ? extension : [extension])
+    .reduce(
+      (extensions, extension) => [...extensions, ...extension.split(',')],
+      [] as string[],
+    )
+    .map((extension) => extension.replace(/^\./, ''))
+    .join('|')})`
+}
+
 const getFiles = async ({
-  entry,
-  ext,
+  entries,
+  extension,
 }: {
-  entry: string | string[]
-  ext: string | string[]
+  entries: string[]
+  extension: string | string[]
 }) => {
-  const entries = Array.isArray(entry) ? entry : [entry]
-  const exts = ext
-    ? `.(${(Array.isArray(ext) ? ext : [ext])
-        .reduce((exts, ext) => [...exts, ...ext.split(',')], [] as string[])
-        .map((ext) => ext.replace(/^\./, ''))
-        .join('|')})`
-    : ''
   const patterns = await entries.reduce(async (entries, entry) => {
     return [
       ...(await entries),
       !entry.includes('*') && (await stat(entry)).isDirectory()
-        ? `${entry}/**/*${exts}`
+        ? `${entry}/**/*${getExtensions(extension)}`
         : entry,
     ]
   }, Promise.resolve([] as string[]))
@@ -40,25 +48,34 @@ const getResults = async (files: string[], forks: number, argv: any) => {
       spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),
     )
   }
-  return Promise.all(eslints)
+  return Promise.allSettled<ESLintResult>(eslints)
 }
 
-const getFormatted = (results: { stdout: string }[], format: ESLintFormat) => {
+const getFormatted = (
+  results: PromiseSettledResult<Awaited<ESLintResult>>[],
+  format: ESLintFormat,
+) => {
+  const outs = results
+    .map((result) =>
+      result.status === 'fulfilled'
+        ? result.value.stdout
+        : result.reason.stdout,
+    )
+    .filter((result) => result)
+    .sort()
   if (format === 'json') {
-    return `[${results
-      .map((result) => result.stdout.substring(1, result.stdout.length - 1))
+    return `[${outs
+      .map((out) => out.substring(1, out.length - 1))
+      .filter((out) => out)
       .join(',')}]`
   }
-  return results
-    .map((result) => result.stdout)
-    .filter((result) => result)
-    .join('\n')
+  return outs.join('\n')
 }
 
 export const main = async (args: string[]) => {
   const {
-    _: entry,
-    ext = ['js', 'ts', 'jsx', 'tsx'],
+    _: entries,
+    ext: extension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx'],
     'output-file': outputFile,
     o,
     help,
@@ -74,11 +91,12 @@ export const main = async (args: string[]) => {
     console.log(res.stdout)
     return
   }
-  const files = await getFiles({ entry, ext })
+  const files = await getFiles({ entries, extension })
   const output = o || outputFile
   const format = f || outputFormat || 'stylish'
   if (!['stylish', 'compact', 'json'].includes(format)) {
-    throw new Error('format is not supported yet')
+    console.error(`format ${format} is not supported yet`)
+    return
   }
   const results = await getResults(files, 4, { ...argv, format })
   const formatted = getFormatted(results, format)
@@ -89,4 +107,9 @@ export const main = async (args: string[]) => {
       console.log(formatted)
     }
   }
+  if (results.every((result) => result.status === 'fulfilled')) {
+    return Promise.resolve()
+  }
+  // eslint-disable-next-line prefer-promise-reject-errors
+  return Promise.reject()
 }
