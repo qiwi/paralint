@@ -6,14 +6,35 @@ import minimist from 'minimist'
 import { stat, writeFile } from 'node:fs/promises'
 import { cpus } from 'node:os'
 
-type ESLintFormat = 'stylish' | 'compact' | 'json'
+type ParaLintArgs = {
+  entries: string[]
+  help: boolean
+  version: boolean
+  extension: string | string[]
+  format: 'stylish' | 'compact' | 'json'
+  outputFile: string
+  concurrency: number
+  argv: Record<string, any>
+}
 
-export type ESLintResult = {
+export type ParaLintResult = {
   stdout: string
   stderr: string
 }
 
-const getExtensions = (extension: string | string[]) => {
+const cpusLength = cpus().length
+
+const defaultExtension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx']
+
+const compatibleFormats = [
+  'stylish',
+  'compact',
+  'json',
+] as ParaLintArgs['format'][]
+
+const getExtensions: (extension: ParaLintArgs['extension']) => string = (
+  extension,
+) => {
   return `.(${(Array.isArray(extension) ? extension : [extension])
     .reduce(
       (extensions, extension) => [...extensions, ...extension.split(',')],
@@ -23,13 +44,10 @@ const getExtensions = (extension: string | string[]) => {
     .join('|')})`
 }
 
-const getFiles = async ({
+const getFiles: ({
   entries,
   extension,
-}: {
-  entries: string[]
-  extension: string | string[]
-}) => {
+}: ParaLintArgs) => Promise<string[]> = async ({ entries, extension }) => {
   const patterns = await entries.reduce(async (entries, entry) => {
     return [
       ...(await entries),
@@ -41,7 +59,15 @@ const getFiles = async ({
   return fg(patterns, { onlyFiles: true })
 }
 
-const getResults = async (files: string[], forks: number, argv: any) => {
+const getResults: (
+  files: string[],
+  forks: number,
+  argv: Record<string, any>,
+) => Promise<PromiseSettledResult<Awaited<ParaLintResult>>[]> = async (
+  files,
+  forks,
+  argv,
+) => {
   const eslints = []
   const offset = files.length / forks
   for (let f = 0; f < files.length; f += offset) {
@@ -49,20 +75,20 @@ const getResults = async (files: string[], forks: number, argv: any) => {
       spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),
     )
   }
-  return Promise.allSettled<ESLintResult>(eslints)
+  return Promise.allSettled<ParaLintResult>(eslints)
 }
 
-const getFormatted = (
-  results: PromiseSettledResult<Awaited<ESLintResult>>[],
-  format: ESLintFormat,
-) => {
+const getFormatted: (
+  results: PromiseSettledResult<Awaited<ParaLintResult>>[],
+  format: ParaLintArgs['format'],
+) => string = (results, format) => {
   const outs = results
     .map((result) =>
       result.status === 'fulfilled'
         ? result.value.stdout
         : result.reason.stdout,
     )
-    .filter((result) => result)
+    .filter((out) => out)
     .sort()
   if (format === 'json') {
     return `[${outs
@@ -73,51 +99,66 @@ const getFormatted = (
   return outs.join('\n')
 }
 
-export const main = async (args: string[]) => {
+const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   const {
     _: entries,
-    ext: extension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx'],
-    'output-file': outputFile,
-    o,
-    help,
     h,
-    version,
+    help = h,
     v,
-    format: outputFormat,
-    f,
-    concurrency = 4,
+    version = v,
+    ext: extension = defaultExtension,
+    f = 'stylish',
+    format = f,
+    o,
+    'output-file': outputFile = o,
+    concurrency = cpusLength / 2,
     ...argv
   } = minimist(args)
-  if (h || help || v || version) {
-    const res = await spawn('eslint', dargs({ v, version, h, help }))
-    console.log(res.stdout)
-    return
+  return {
+    entries,
+    help,
+    version,
+    extension,
+    format,
+    outputFile,
+    concurrency,
+    argv,
   }
-  const format = f || outputFormat || 'stylish'
-  const output = o || outputFile
+}
 
-  if (!['stylish', 'compact', 'json'].includes(format)) {
-    console.error(`format ${format} is not supported yet`)
-    return
-  }
-
-  const files = await getFiles({ entries, extension })
+const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
+  const { format, outputFile, concurrency, argv } = args
+  const files = await getFiles(args)
   const results = await getResults(
     files,
-    Math.min(Math.max(1, concurrency | 0), cpus().length),
+    Math.min(Math.max(1, concurrency | 0), cpusLength),
     { ...argv, format },
   )
   const formatted = getFormatted(results, format)
-  if (output) {
-    await writeFile(output, formatted)
-  } else {
-    if (formatted) {
-      console.log(formatted)
-    }
+  if (outputFile) {
+    await writeFile(outputFile, formatted)
+  } else if (formatted) {
+    console.log(formatted)
   }
-  if (results.every((result) => result.status === 'fulfilled')) {
+  if (results.every(({ status }) => status === 'fulfilled')) {
     return Promise.resolve()
   }
   // eslint-disable-next-line prefer-promise-reject-errors
   return Promise.reject()
+}
+
+export const main: (argv: string[]) => Promise<any> = async (argv) => {
+  const args = getArgs(argv)
+  const { help, version, format } = args
+  if (help || version) {
+    const res = await spawn('eslint', dargs({ version, help }))
+    console.log(res.stdout)
+    return Promise.resolve()
+  }
+  if (!compatibleFormats.includes(format)) {
+    console.error(`format ${format} is not supported yet`)
+    // eslint-disable-next-line prefer-promise-reject-errors
+    return Promise.reject()
+  }
+  return lint(args)
 }

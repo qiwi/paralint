@@ -1,8 +1,381 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`runs with --format html 1`] = `""`;
+exports[`runs with --format html 1`] = `"format html is not supported yet"`;
 
-exports[`runs with --format json and --output-file eslint.json 1`] = `"[{\\"filePath\\":\\"/src/main/ts/cli.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/main/ts/index.ts\\",\\"messages\\":[{\\"ruleId\\":\\"prefer-promise-reject-errors\\",\\"severity\\":2,\\"message\\":\\"Expected the Promise rejection reason to be an Error.\\",\\"line\\":122,\\"column\\":10,\\"nodeType\\":\\"CallExpression\\",\\"messageId\\":\\"rejectAnError\\",\\"endLine\\":122,\\"endColumn\\":26}],\\"suppressedMessages\\":[],\\"errorCount\\":1,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"source\\":\\"// @ts-ignore\\\\nimport spawn from '@npmcli/promise-spawn'\\\\nimport dargs from 'dargs'\\\\nimport fg from 'fast-glob'\\\\nimport minimist from 'minimist'\\\\nimport { stat, writeFile } from 'node:fs/promises'\\\\nimport { cpus } from 'node:os'\\\\n\\\\ntype ESLintFormat = 'stylish' | 'compact' | 'json'\\\\n\\\\nexport type ESLintResult = {\\\\n  stdout: string\\\\n  stderr: string\\\\n}\\\\n\\\\nconst getExtensions = (extension: string | string[]) => {\\\\n  return \`.(\${(Array.isArray(extension) ? extension : [extension])\\\\n    .reduce(\\\\n      (extensions, extension) => [...extensions, ...extension.split(',')],\\\\n      [] as string[],\\\\n    )\\\\n    .map((extension) => extension.replace(/^\\\\\\\\./, ''))\\\\n    .join('|')})\`\\\\n}\\\\n\\\\nconst getFiles = async ({\\\\n  entries,\\\\n  extension,\\\\n}: {\\\\n  entries: string[]\\\\n  extension: string | string[]\\\\n}) => {\\\\n  const patterns = await entries.reduce(async (entries, entry) => {\\\\n    return [\\\\n      ...(await entries),\\\\n      !entry.includes('*') && (await stat(entry)).isDirectory()\\\\n        ? \`\${entry}/**/*\${getExtensions(extension)}\`\\\\n        : entry,\\\\n    ]\\\\n  }, Promise.resolve([] as string[]))\\\\n  return fg(patterns, { onlyFiles: true })\\\\n}\\\\n\\\\nconst getResults = async (files: string[], forks: number, argv: any) => {\\\\n  const eslints = []\\\\n  const offset = files.length / forks\\\\n  for (let f = 0; f < files.length; f += offset) {\\\\n    eslints.push(\\\\n      spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),\\\\n    )\\\\n  }\\\\n  return Promise.allSettled<ESLintResult>(eslints)\\\\n}\\\\n\\\\nconst getFormatted = (\\\\n  results: PromiseSettledResult<Awaited<ESLintResult>>[],\\\\n  format: ESLintFormat,\\\\n) => {\\\\n  const outs = results\\\\n    .map((result) =>\\\\n      result.status === 'fulfilled'\\\\n        ? result.value.stdout\\\\n        : result.reason.stdout,\\\\n    )\\\\n    .filter((result) => result)\\\\n    .sort()\\\\n  if (format === 'json') {\\\\n    return \`[\${outs\\\\n      .map((out) => out.substring(1, out.length - 1))\\\\n      .filter((out) => out)\\\\n      .join(',')}]\`\\\\n  }\\\\n  return outs.join('\\\\\\\\n')\\\\n}\\\\n\\\\nexport const main = async (args: string[]) => {\\\\n  const {\\\\n    _: entries,\\\\n    ext: extension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx'],\\\\n    'output-file': outputFile,\\\\n    o,\\\\n    help,\\\\n    h,\\\\n    version,\\\\n    v,\\\\n    format: outputFormat,\\\\n    f,\\\\n    concurrency = 4,\\\\n    ...argv\\\\n  } = minimist(args)\\\\n  if (h || help || v || version) {\\\\n    const res = await spawn('eslint', dargs({ v, version, h, help }))\\\\n    console.log(res.stdout)\\\\n    return\\\\n  }\\\\n  const format = f || outputFormat || 'stylish'\\\\n  const output = o || outputFile\\\\n\\\\n  if (!['stylish', 'compact', 'json'].includes(format)) {\\\\n    console.error(\`format \${format} is not supported yet\`)\\\\n    return\\\\n  }\\\\n\\\\n  const files = await getFiles({ entries, extension })\\\\n  const results = await getResults(\\\\n    files,\\\\n    Math.min(Math.max(1, concurrency | 0), cpus().length),\\\\n    { ...argv, format },\\\\n  )\\\\n  const formatted = getFormatted(results, format)\\\\n  if (output) {\\\\n    await writeFile(output, formatted)\\\\n  } else {\\\\n    if (formatted) {\\\\n      console.log(formatted)\\\\n    }\\\\n  }\\\\n  if (results.every((result) => result.status === 'fulfilled')) {\\\\n    return Promise.resolve()\\\\n  }\\\\n  // eslint-disable-next-line prefer-promise-reject-errors\\\\n  return Promise.reject()\\\\n}\\\\n\\",\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/test/ts/index.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]}]"`;
+exports[`runs with --format html 2`] = `"format html is not supported yet"`;
+
+exports[`runs with --format json and --output-file eslint.json 1`] = `
+Array [
+  Object {
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "filePath": "/src/main/ts/cli.ts",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": Array [],
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [
+      Object {
+        "replacedBy": Array [
+          "unicorn/no-instanceof-array",
+        ],
+        "ruleId": "unicorn/no-array-instanceof",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-dataset",
+        ],
+        "ruleId": "unicorn/prefer-dataset",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-keyboard-event-key",
+        ],
+        "ruleId": "unicorn/prefer-event-key",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-array-flat-map",
+        ],
+        "ruleId": "unicorn/prefer-flat-map",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-append",
+        ],
+        "ruleId": "unicorn/prefer-node-append",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-remove",
+        ],
+        "ruleId": "unicorn/prefer-node-remove",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-string-starts-ends-with",
+        ],
+        "ruleId": "unicorn/prefer-starts-ends-with",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-text-content",
+        ],
+        "ruleId": "unicorn/prefer-text-content",
+      },
+    ],
+    "warningCount": 0,
+  },
+  Object {
+    "errorCount": 2,
+    "fatalErrorCount": 0,
+    "filePath": "/src/main/ts/index.ts",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": Array [
+      Object {
+        "column": 10,
+        "endColumn": 26,
+        "endLine": 147,
+        "line": 147,
+        "message": "Expected the Promise rejection reason to be an Error.",
+        "messageId": "rejectAnError",
+        "nodeType": "CallExpression",
+        "ruleId": "prefer-promise-reject-errors",
+        "severity": 2,
+      },
+      Object {
+        "column": 12,
+        "endColumn": 28,
+        "endLine": 161,
+        "line": 161,
+        "message": "Expected the Promise rejection reason to be an Error.",
+        "messageId": "rejectAnError",
+        "nodeType": "CallExpression",
+        "ruleId": "prefer-promise-reject-errors",
+        "severity": 2,
+      },
+    ],
+    "source": "// @ts-ignore
+import spawn from '@npmcli/promise-spawn'
+import dargs from 'dargs'
+import fg from 'fast-glob'
+import minimist from 'minimist'
+import { stat, writeFile } from 'node:fs/promises'
+import { cpus } from 'node:os'
+
+type ParaLintArgs = {
+  entries: string[]
+  help: boolean
+  version: boolean
+  extension: string | string[]
+  format: 'stylish' | 'compact' | 'json'
+  outputFile: string
+  concurrency: number
+  argv: Record<string, any>
+}
+
+export type ParaLintResult = {
+  stdout: string
+  stderr: string
+}
+
+const cpusLength = cpus().length
+
+const defaultExtension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx']
+
+const compatibleFormats = [
+  'stylish',
+  'compact',
+  'json',
+] as ParaLintArgs['format'][]
+
+const getExtensions: (extension: ParaLintArgs['extension']) => string = (
+  extension,
+) => {
+  return \`.(\${(Array.isArray(extension) ? extension : [extension])
+    .reduce(
+      (extensions, extension) => [...extensions, ...extension.split(',')],
+      [] as string[],
+    )
+    .map((extension) => extension.replace(/^\\\\./, ''))
+    .join('|')})\`
+}
+
+const getFiles: ({
+  entries,
+  extension,
+}: ParaLintArgs) => Promise<string[]> = async ({ entries, extension }) => {
+  const patterns = await entries.reduce(async (entries, entry) => {
+    return [
+      ...(await entries),
+      !entry.includes('*') && (await stat(entry)).isDirectory()
+        ? \`\${entry}/**/*\${getExtensions(extension)}\`
+        : entry,
+    ]
+  }, Promise.resolve([] as string[]))
+  return fg(patterns, { onlyFiles: true })
+}
+
+const getResults: (
+  files: string[],
+  forks: number,
+  argv: Record<string, any>,
+) => Promise<PromiseSettledResult<Awaited<ParaLintResult>>[]> = async (
+  files,
+  forks,
+  argv,
+) => {
+  const eslints = []
+  const offset = files.length / forks
+  for (let f = 0; f < files.length; f += offset) {
+    eslints.push(
+      spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),
+    )
+  }
+  return Promise.allSettled<ParaLintResult>(eslints)
+}
+
+const getFormatted: (
+  results: PromiseSettledResult<Awaited<ParaLintResult>>[],
+  format: ParaLintArgs['format'],
+) => string = (results, format) => {
+  const outs = results
+    .map((result) =>
+      result.status === 'fulfilled'
+        ? result.value.stdout
+        : result.reason.stdout,
+    )
+    .filter((out) => out)
+    .sort()
+  if (format === 'json') {
+    return \`[\${outs
+      .map((out) => out.substring(1, out.length - 1))
+      .filter((out) => out)
+      .join(',')}]\`
+  }
+  return outs.join('\\\\n')
+}
+
+const getArgs: (args: string[]) => ParaLintArgs = (args) => {
+  const {
+    _: entries,
+    h,
+    help = h,
+    v,
+    version = v,
+    ext: extension = defaultExtension,
+    f = 'stylish',
+    format = f,
+    o,
+    'output-file': outputFile = o,
+    concurrency = cpusLength / 2,
+    ...argv
+  } = minimist(args)
+  return {
+    entries,
+    help,
+    version,
+    extension,
+    format,
+    outputFile,
+    concurrency,
+    argv,
+  }
+}
+
+const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
+  const { format, outputFile, concurrency, argv } = args
+  const files = await getFiles(args)
+  const results = await getResults(
+    files,
+    Math.min(Math.max(1, concurrency | 0), cpusLength),
+    { ...argv, format },
+  )
+  const formatted = getFormatted(results, format)
+  if (outputFile) {
+    await writeFile(outputFile, formatted)
+  } else if (formatted) {
+    console.log(formatted)
+  }
+  if (results.every(({ status }) => status === 'fulfilled')) {
+    return Promise.resolve()
+  }
+  // eslint-disable-next-line prefer-promise-reject-errors
+  return Promise.reject()
+}
+
+export const main: (argv: string[]) => Promise<any> = async (argv) => {
+  const args = getArgs(argv)
+  const { help, version, format } = args
+  if (help || version) {
+    const res = await spawn('eslint', dargs({ version, help }))
+    console.log(res.stdout)
+    return Promise.resolve()
+  }
+  if (!compatibleFormats.includes(format)) {
+    console.error(\`format \${format} is not supported yet\`)
+    // eslint-disable-next-line prefer-promise-reject-errors
+    return Promise.reject()
+  }
+  return lint(args)
+}
+",
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [
+      Object {
+        "replacedBy": Array [
+          "unicorn/no-instanceof-array",
+        ],
+        "ruleId": "unicorn/no-array-instanceof",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-dataset",
+        ],
+        "ruleId": "unicorn/prefer-dataset",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-keyboard-event-key",
+        ],
+        "ruleId": "unicorn/prefer-event-key",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-array-flat-map",
+        ],
+        "ruleId": "unicorn/prefer-flat-map",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-append",
+        ],
+        "ruleId": "unicorn/prefer-node-append",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-remove",
+        ],
+        "ruleId": "unicorn/prefer-node-remove",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-string-starts-ends-with",
+        ],
+        "ruleId": "unicorn/prefer-starts-ends-with",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-text-content",
+        ],
+        "ruleId": "unicorn/prefer-text-content",
+      },
+    ],
+    "warningCount": 0,
+  },
+  Object {
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "filePath": "/src/test/ts/index.ts",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": Array [],
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [
+      Object {
+        "replacedBy": Array [
+          "unicorn/no-instanceof-array",
+        ],
+        "ruleId": "unicorn/no-array-instanceof",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-dataset",
+        ],
+        "ruleId": "unicorn/prefer-dataset",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-keyboard-event-key",
+        ],
+        "ruleId": "unicorn/prefer-event-key",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-array-flat-map",
+        ],
+        "ruleId": "unicorn/prefer-flat-map",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-append",
+        ],
+        "ruleId": "unicorn/prefer-node-append",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-remove",
+        ],
+        "ruleId": "unicorn/prefer-node-remove",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-string-starts-ends-with",
+        ],
+        "ruleId": "unicorn/prefer-starts-ends-with",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-text-content",
+        ],
+        "ruleId": "unicorn/prefer-text-content",
+      },
+    ],
+    "warningCount": 0,
+  },
+]
+`;
 
 exports[`runs with --help 1`] = `
 "eslint [options] file.js [file.js] [dir]
@@ -68,9 +441,382 @@ Miscellaneous:
 
 exports[`runs with --version 1`] = `"v8.20.0"`;
 
-exports[`runs with -f html 1`] = `""`;
+exports[`runs with -f html 1`] = `"format html is not supported yet"`;
 
-exports[`runs with -f json 1`] = `"[{\\"filePath\\":\\"/src/main/ts/cli.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/main/ts/index.ts\\",\\"messages\\":[{\\"ruleId\\":\\"prefer-promise-reject-errors\\",\\"severity\\":2,\\"message\\":\\"Expected the Promise rejection reason to be an Error.\\",\\"line\\":122,\\"column\\":10,\\"nodeType\\":\\"CallExpression\\",\\"messageId\\":\\"rejectAnError\\",\\"endLine\\":122,\\"endColumn\\":26}],\\"suppressedMessages\\":[],\\"errorCount\\":1,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"source\\":\\"// @ts-ignore\\\\nimport spawn from '@npmcli/promise-spawn'\\\\nimport dargs from 'dargs'\\\\nimport fg from 'fast-glob'\\\\nimport minimist from 'minimist'\\\\nimport { stat, writeFile } from 'node:fs/promises'\\\\nimport { cpus } from 'node:os'\\\\n\\\\ntype ESLintFormat = 'stylish' | 'compact' | 'json'\\\\n\\\\nexport type ESLintResult = {\\\\n  stdout: string\\\\n  stderr: string\\\\n}\\\\n\\\\nconst getExtensions = (extension: string | string[]) => {\\\\n  return \`.(\${(Array.isArray(extension) ? extension : [extension])\\\\n    .reduce(\\\\n      (extensions, extension) => [...extensions, ...extension.split(',')],\\\\n      [] as string[],\\\\n    )\\\\n    .map((extension) => extension.replace(/^\\\\\\\\./, ''))\\\\n    .join('|')})\`\\\\n}\\\\n\\\\nconst getFiles = async ({\\\\n  entries,\\\\n  extension,\\\\n}: {\\\\n  entries: string[]\\\\n  extension: string | string[]\\\\n}) => {\\\\n  const patterns = await entries.reduce(async (entries, entry) => {\\\\n    return [\\\\n      ...(await entries),\\\\n      !entry.includes('*') && (await stat(entry)).isDirectory()\\\\n        ? \`\${entry}/**/*\${getExtensions(extension)}\`\\\\n        : entry,\\\\n    ]\\\\n  }, Promise.resolve([] as string[]))\\\\n  return fg(patterns, { onlyFiles: true })\\\\n}\\\\n\\\\nconst getResults = async (files: string[], forks: number, argv: any) => {\\\\n  const eslints = []\\\\n  const offset = files.length / forks\\\\n  for (let f = 0; f < files.length; f += offset) {\\\\n    eslints.push(\\\\n      spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),\\\\n    )\\\\n  }\\\\n  return Promise.allSettled<ESLintResult>(eslints)\\\\n}\\\\n\\\\nconst getFormatted = (\\\\n  results: PromiseSettledResult<Awaited<ESLintResult>>[],\\\\n  format: ESLintFormat,\\\\n) => {\\\\n  const outs = results\\\\n    .map((result) =>\\\\n      result.status === 'fulfilled'\\\\n        ? result.value.stdout\\\\n        : result.reason.stdout,\\\\n    )\\\\n    .filter((result) => result)\\\\n    .sort()\\\\n  if (format === 'json') {\\\\n    return \`[\${outs\\\\n      .map((out) => out.substring(1, out.length - 1))\\\\n      .filter((out) => out)\\\\n      .join(',')}]\`\\\\n  }\\\\n  return outs.join('\\\\\\\\n')\\\\n}\\\\n\\\\nexport const main = async (args: string[]) => {\\\\n  const {\\\\n    _: entries,\\\\n    ext: extension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx'],\\\\n    'output-file': outputFile,\\\\n    o,\\\\n    help,\\\\n    h,\\\\n    version,\\\\n    v,\\\\n    format: outputFormat,\\\\n    f,\\\\n    concurrency = 4,\\\\n    ...argv\\\\n  } = minimist(args)\\\\n  if (h || help || v || version) {\\\\n    const res = await spawn('eslint', dargs({ v, version, h, help }))\\\\n    console.log(res.stdout)\\\\n    return\\\\n  }\\\\n  const format = f || outputFormat || 'stylish'\\\\n  const output = o || outputFile\\\\n\\\\n  if (!['stylish', 'compact', 'json'].includes(format)) {\\\\n    console.error(\`format \${format} is not supported yet\`)\\\\n    return\\\\n  }\\\\n\\\\n  const files = await getFiles({ entries, extension })\\\\n  const results = await getResults(\\\\n    files,\\\\n    Math.min(Math.max(1, concurrency | 0), cpus().length),\\\\n    { ...argv, format },\\\\n  )\\\\n  const formatted = getFormatted(results, format)\\\\n  if (output) {\\\\n    await writeFile(output, formatted)\\\\n  } else {\\\\n    if (formatted) {\\\\n      console.log(formatted)\\\\n    }\\\\n  }\\\\n  if (results.every((result) => result.status === 'fulfilled')) {\\\\n    return Promise.resolve()\\\\n  }\\\\n  // eslint-disable-next-line prefer-promise-reject-errors\\\\n  return Promise.reject()\\\\n}\\\\n\\",\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/test/ts/index.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]}]"`;
+exports[`runs with -f html 2`] = `"format html is not supported yet"`;
+
+exports[`runs with -f json 1`] = `
+Array [
+  Object {
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "filePath": "/src/main/ts/cli.ts",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": Array [],
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [
+      Object {
+        "replacedBy": Array [
+          "unicorn/no-instanceof-array",
+        ],
+        "ruleId": "unicorn/no-array-instanceof",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-dataset",
+        ],
+        "ruleId": "unicorn/prefer-dataset",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-keyboard-event-key",
+        ],
+        "ruleId": "unicorn/prefer-event-key",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-array-flat-map",
+        ],
+        "ruleId": "unicorn/prefer-flat-map",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-append",
+        ],
+        "ruleId": "unicorn/prefer-node-append",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-remove",
+        ],
+        "ruleId": "unicorn/prefer-node-remove",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-string-starts-ends-with",
+        ],
+        "ruleId": "unicorn/prefer-starts-ends-with",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-text-content",
+        ],
+        "ruleId": "unicorn/prefer-text-content",
+      },
+    ],
+    "warningCount": 0,
+  },
+  Object {
+    "errorCount": 2,
+    "fatalErrorCount": 0,
+    "filePath": "/src/main/ts/index.ts",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": Array [
+      Object {
+        "column": 10,
+        "endColumn": 26,
+        "endLine": 147,
+        "line": 147,
+        "message": "Expected the Promise rejection reason to be an Error.",
+        "messageId": "rejectAnError",
+        "nodeType": "CallExpression",
+        "ruleId": "prefer-promise-reject-errors",
+        "severity": 2,
+      },
+      Object {
+        "column": 12,
+        "endColumn": 28,
+        "endLine": 161,
+        "line": 161,
+        "message": "Expected the Promise rejection reason to be an Error.",
+        "messageId": "rejectAnError",
+        "nodeType": "CallExpression",
+        "ruleId": "prefer-promise-reject-errors",
+        "severity": 2,
+      },
+    ],
+    "source": "// @ts-ignore
+import spawn from '@npmcli/promise-spawn'
+import dargs from 'dargs'
+import fg from 'fast-glob'
+import minimist from 'minimist'
+import { stat, writeFile } from 'node:fs/promises'
+import { cpus } from 'node:os'
+
+type ParaLintArgs = {
+  entries: string[]
+  help: boolean
+  version: boolean
+  extension: string | string[]
+  format: 'stylish' | 'compact' | 'json'
+  outputFile: string
+  concurrency: number
+  argv: Record<string, any>
+}
+
+export type ParaLintResult = {
+  stdout: string
+  stderr: string
+}
+
+const cpusLength = cpus().length
+
+const defaultExtension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx']
+
+const compatibleFormats = [
+  'stylish',
+  'compact',
+  'json',
+] as ParaLintArgs['format'][]
+
+const getExtensions: (extension: ParaLintArgs['extension']) => string = (
+  extension,
+) => {
+  return \`.(\${(Array.isArray(extension) ? extension : [extension])
+    .reduce(
+      (extensions, extension) => [...extensions, ...extension.split(',')],
+      [] as string[],
+    )
+    .map((extension) => extension.replace(/^\\\\./, ''))
+    .join('|')})\`
+}
+
+const getFiles: ({
+  entries,
+  extension,
+}: ParaLintArgs) => Promise<string[]> = async ({ entries, extension }) => {
+  const patterns = await entries.reduce(async (entries, entry) => {
+    return [
+      ...(await entries),
+      !entry.includes('*') && (await stat(entry)).isDirectory()
+        ? \`\${entry}/**/*\${getExtensions(extension)}\`
+        : entry,
+    ]
+  }, Promise.resolve([] as string[]))
+  return fg(patterns, { onlyFiles: true })
+}
+
+const getResults: (
+  files: string[],
+  forks: number,
+  argv: Record<string, any>,
+) => Promise<PromiseSettledResult<Awaited<ParaLintResult>>[]> = async (
+  files,
+  forks,
+  argv,
+) => {
+  const eslints = []
+  const offset = files.length / forks
+  for (let f = 0; f < files.length; f += offset) {
+    eslints.push(
+      spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),
+    )
+  }
+  return Promise.allSettled<ParaLintResult>(eslints)
+}
+
+const getFormatted: (
+  results: PromiseSettledResult<Awaited<ParaLintResult>>[],
+  format: ParaLintArgs['format'],
+) => string = (results, format) => {
+  const outs = results
+    .map((result) =>
+      result.status === 'fulfilled'
+        ? result.value.stdout
+        : result.reason.stdout,
+    )
+    .filter((out) => out)
+    .sort()
+  if (format === 'json') {
+    return \`[\${outs
+      .map((out) => out.substring(1, out.length - 1))
+      .filter((out) => out)
+      .join(',')}]\`
+  }
+  return outs.join('\\\\n')
+}
+
+const getArgs: (args: string[]) => ParaLintArgs = (args) => {
+  const {
+    _: entries,
+    h,
+    help = h,
+    v,
+    version = v,
+    ext: extension = defaultExtension,
+    f = 'stylish',
+    format = f,
+    o,
+    'output-file': outputFile = o,
+    concurrency = cpusLength / 2,
+    ...argv
+  } = minimist(args)
+  return {
+    entries,
+    help,
+    version,
+    extension,
+    format,
+    outputFile,
+    concurrency,
+    argv,
+  }
+}
+
+const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
+  const { format, outputFile, concurrency, argv } = args
+  const files = await getFiles(args)
+  const results = await getResults(
+    files,
+    Math.min(Math.max(1, concurrency | 0), cpusLength),
+    { ...argv, format },
+  )
+  const formatted = getFormatted(results, format)
+  if (outputFile) {
+    await writeFile(outputFile, formatted)
+  } else if (formatted) {
+    console.log(formatted)
+  }
+  if (results.every(({ status }) => status === 'fulfilled')) {
+    return Promise.resolve()
+  }
+  // eslint-disable-next-line prefer-promise-reject-errors
+  return Promise.reject()
+}
+
+export const main: (argv: string[]) => Promise<any> = async (argv) => {
+  const args = getArgs(argv)
+  const { help, version, format } = args
+  if (help || version) {
+    const res = await spawn('eslint', dargs({ version, help }))
+    console.log(res.stdout)
+    return Promise.resolve()
+  }
+  if (!compatibleFormats.includes(format)) {
+    console.error(\`format \${format} is not supported yet\`)
+    // eslint-disable-next-line prefer-promise-reject-errors
+    return Promise.reject()
+  }
+  return lint(args)
+}
+",
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [
+      Object {
+        "replacedBy": Array [
+          "unicorn/no-instanceof-array",
+        ],
+        "ruleId": "unicorn/no-array-instanceof",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-dataset",
+        ],
+        "ruleId": "unicorn/prefer-dataset",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-keyboard-event-key",
+        ],
+        "ruleId": "unicorn/prefer-event-key",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-array-flat-map",
+        ],
+        "ruleId": "unicorn/prefer-flat-map",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-append",
+        ],
+        "ruleId": "unicorn/prefer-node-append",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-remove",
+        ],
+        "ruleId": "unicorn/prefer-node-remove",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-string-starts-ends-with",
+        ],
+        "ruleId": "unicorn/prefer-starts-ends-with",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-text-content",
+        ],
+        "ruleId": "unicorn/prefer-text-content",
+      },
+    ],
+    "warningCount": 0,
+  },
+  Object {
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "filePath": "/src/test/ts/index.ts",
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "messages": Array [],
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [
+      Object {
+        "replacedBy": Array [
+          "unicorn/no-instanceof-array",
+        ],
+        "ruleId": "unicorn/no-array-instanceof",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-dataset",
+        ],
+        "ruleId": "unicorn/prefer-dataset",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-keyboard-event-key",
+        ],
+        "ruleId": "unicorn/prefer-event-key",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-array-flat-map",
+        ],
+        "ruleId": "unicorn/prefer-flat-map",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-append",
+        ],
+        "ruleId": "unicorn/prefer-node-append",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-remove",
+        ],
+        "ruleId": "unicorn/prefer-node-remove",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-string-starts-ends-with",
+        ],
+        "ruleId": "unicorn/prefer-starts-ends-with",
+      },
+      Object {
+        "replacedBy": Array [
+          "unicorn/prefer-dom-node-text-content",
+        ],
+        "ruleId": "unicorn/prefer-text-content",
+      },
+    ],
+    "warningCount": 0,
+  },
+]
+`;
 
 exports[`runs with -h 1`] = `
 "eslint [options] file.js [file.js] [dir]
@@ -137,9 +883,10 @@ Miscellaneous:
 exports[`runs with -o eslint.txt 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m122:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
-[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
 `;
 
@@ -148,18 +895,20 @@ exports[`runs with -v 1`] = `"v8.20.0"`;
 exports[`runs with directory 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m122:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
-[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
 `;
 
 exports[`runs with directory and ext 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m122:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
-[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
 `;
 
@@ -168,8 +917,9 @@ exports[`runs with file 1`] = `""`;
 exports[`runs with pattern 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m122:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
-[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
 `;
