@@ -23,6 +23,9 @@ coverage.*
 .nyc_output
 *.lcov
 
+# CI/CD
+artifact.tar
+
 # Codeclimate
 codeclimate.*
 cc-reporter
