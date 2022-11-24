@@ -1,3 +1,8 @@
+## [1.1.2](https://github.com/qiwi/paralint/compare/v1.1.1...v1.1.2) (2022-11-24)
+
+### Fixes & improvements
+* refactor: unsmelling ([30d1986](https://github.com/qiwi/paralint/commit/30d19864ed64fd16270cf7aeed72562fbe0cefa3))
+
 ## [1.1.1](https://github.com/qiwi/paralint/compare/v1.1.0...v1.1.1) (2022-11-24)
 
 ### Fixes & improvements
