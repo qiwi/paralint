@@ -93,13 +93,15 @@ export const main = async (args: string[]) => {
     console.log(res.stdout)
     return
   }
-  const files = await getFiles({ entries, extension })
-  const output = o || outputFile
   const format = f || outputFormat || 'stylish'
+  const output = o || outputFile
+
   if (!['stylish', 'compact', 'json'].includes(format)) {
     console.error(`format ${format} is not supported yet`)
     return
   }
+
+  const files = await getFiles({ entries, extension })
   const results = await getResults(
     files,
     Math.min(Math.max(1, concurrency | 0), cpus().length),
