@@ -4,6 +4,7 @@ import dargs from 'dargs'
 import fg from 'fast-glob'
 import minimist from 'minimist'
 import { stat, writeFile } from 'node:fs/promises'
+import { cpus } from 'node:os'
 
 type ESLintFormat = 'stylish' | 'compact' | 'json'
 
@@ -84,6 +85,7 @@ export const main = async (args: string[]) => {
     v,
     format: outputFormat,
     f,
+    concurrency = 4,
     ...argv
   } = minimist(args)
   if (h || help || v || version) {
@@ -98,7 +100,11 @@ export const main = async (args: string[]) => {
     console.error(`format ${format} is not supported yet`)
     return
   }
-  const results = await getResults(files, 4, { ...argv, format })
+  const results = await getResults(
+    files,
+    Math.min(Math.max(1, concurrency), cpus().length),
+    { ...argv, format },
+  )
   const formatted = getFormatted(results, format)
   if (output) {
     await writeFile(output, formatted)
