@@ -102,7 +102,7 @@ export const main = async (args: string[]) => {
   }
   const results = await getResults(
     files,
-    Math.min(Math.max(1, concurrency), cpus().length),
+    Math.min(Math.max(1, concurrency | 0), cpus().length),
     { ...argv, format },
   )
   const formatted = getFormatted(results, format)
