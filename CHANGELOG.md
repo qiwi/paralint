@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/qiwi/paralint/compare/v1.1.0...v1.1.1) (2022-11-24)
+
+### Fixes & improvements
+* refactor: optimize format check flow ([e7cad12](https://github.com/qiwi/paralint/commit/e7cad129866ad244a69d715b7f3f951f54b82a37))
+* docs: update badges ([60f24d6](https://github.com/qiwi/paralint/commit/60f24d66fba0e593638c83e5e3d4faa26848661a))
+
 ## [1.1.0](https://github.com/qiwi/paralint/compare/v1.0.0...v1.1.0) (2022-11-24)
 
 ### Fixes & improvements
