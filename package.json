@@ -7,6 +7,7 @@
     "access": "public"
   },
   "description": "Runner to invoke ESLint in parallel",
+  "type": "module",
   "exports": {
     ".": "./target/es6/index.js"
   },
@@ -14,14 +15,15 @@
   "typescript": {
     "definition": "./target/es6/index.d.ts"
   },
+  "bin": "./target/es6/cli.js",
   "scripts": {
     "clean": "rm -rf target buildcache docs coverage buildstamp.json",
-    "lint": "eslint src/**/*.{ts,js}",
+    "lint": "eslint src",
     "lint:fix": "yarn lint --fix",
     "format": "prettier --write \"src/**/*\"",
     "test": "yarn lint && yarn test:unit && yarn test:depcheck && yarn test:depaudit",
-    "test:unit": "c8 -r html -r text -r lcov uvu -r tsm 'src/test/ts'",
-    "test:target": "uvu -r tsm -r @qiwi/esm src/test/js",
+    "test:unit": "c8 -r html -r text -r lcov uvu -r tsm -r earljs/uvu 'src/test/ts'",
+    "test:target": "uvu -r tsm -r @qiwi/esm -r earljs/uvu src/test/js",
     "test:deps": "npm-run-all -p -l test:depcheck test:depauditfix",
     "test:depcheck": "npm_config_yes=true npx depcheck --ignores tsc-esm-fix,tslib,@types/node,typedoc,@qiwi/esm,tsm",
     "test:depaudit": "yarn audit --level=moderate --groups=dependencies; [[ $? -ge 4 ]] && exit 1 || exit 0",
@@ -42,6 +44,10 @@
   },
   "resolutions": {},
   "dependencies": {
+    "@npmcli/promise-spawn": "^6.0.1",
+    "dargs": "^8.1.0",
+    "fast-glob": "^3.2.12",
+    "minimist": "^1.2.7",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
@@ -56,6 +62,7 @@
     "eslint-config-qiwi": "^1.17.4",
     "prettier": "^2.7.1",
     "prettier-config-qiwi": "^1.7.2",
+    "tempy": "^3.0.0",
     "terser": "^5.14.2",
     "tsc-esm-fix": "^2.20.0",
     "tsm": "^2.2.2",

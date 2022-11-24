@@ -1,0 +1,175 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`runs with --format html 1`] = `""`;
+
+exports[`runs with --format json and --output-file eslint.json 1`] = `"[{\\"filePath\\":\\"/src/main/ts/cli.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/main/ts/index.ts\\",\\"messages\\":[{\\"ruleId\\":\\"prefer-promise-reject-errors\\",\\"severity\\":2,\\"message\\":\\"Expected the Promise rejection reason to be an Error.\\",\\"line\\":114,\\"column\\":10,\\"nodeType\\":\\"CallExpression\\",\\"messageId\\":\\"rejectAnError\\",\\"endLine\\":114,\\"endColumn\\":26}],\\"suppressedMessages\\":[],\\"errorCount\\":1,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"source\\":\\"// @ts-ignore\\\\nimport spawn from '@npmcli/promise-spawn'\\\\nimport dargs from 'dargs'\\\\nimport fg from 'fast-glob'\\\\nimport minimist from 'minimist'\\\\nimport { stat, writeFile } from 'node:fs/promises'\\\\n\\\\ntype ESLintFormat = 'stylish' | 'compact' | 'json'\\\\n\\\\nexport type ESLintResult = {\\\\n  stdout: string\\\\n  stderr: string\\\\n}\\\\n\\\\nconst getExtensions = (extension: string | string[]) => {\\\\n  return \`.(\${(Array.isArray(extension) ? extension : [extension])\\\\n    .reduce(\\\\n      (extensions, extension) => [...extensions, ...extension.split(',')],\\\\n      [] as string[],\\\\n    )\\\\n    .map((extension) => extension.replace(/^\\\\\\\\./, ''))\\\\n    .join('|')})\`\\\\n}\\\\n\\\\nconst getFiles = async ({\\\\n  entries,\\\\n  extension,\\\\n}: {\\\\n  entries: string[]\\\\n  extension: string | string[]\\\\n}) => {\\\\n  const patterns = await entries.reduce(async (entries, entry) => {\\\\n    return [\\\\n      ...(await entries),\\\\n      !entry.includes('*') && (await stat(entry)).isDirectory()\\\\n        ? \`\${entry}/**/*\${getExtensions(extension)}\`\\\\n        : entry,\\\\n    ]\\\\n  }, Promise.resolve([] as string[]))\\\\n  return fg(patterns, { onlyFiles: true })\\\\n}\\\\n\\\\nconst getResults = async (files: string[], forks: number, argv: any) => {\\\\n  const eslints = []\\\\n  const offset = files.length / forks\\\\n  for (let f = 0; f < files.length; f += offset) {\\\\n    eslints.push(\\\\n      spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),\\\\n    )\\\\n  }\\\\n  return Promise.allSettled<ESLintResult>(eslints)\\\\n}\\\\n\\\\nconst getFormatted = (\\\\n  results: PromiseSettledResult<Awaited<ESLintResult>>[],\\\\n  format: ESLintFormat,\\\\n) => {\\\\n  const outs = results\\\\n    .map((result) =>\\\\n      result.status === 'fulfilled'\\\\n        ? result.value.stdout\\\\n        : result.reason.stdout,\\\\n    )\\\\n    .filter((result) => result)\\\\n    .sort()\\\\n  if (format === 'json') {\\\\n    return \`[\${outs\\\\n      .map((out) => out.substring(1, out.length - 1))\\\\n      .filter((out) => out)\\\\n      .join(',')}]\`\\\\n  }\\\\n  return outs.join('\\\\\\\\n')\\\\n}\\\\n\\\\nexport const main = async (args: string[]) => {\\\\n  const {\\\\n    _: entries,\\\\n    ext: extension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx'],\\\\n    'output-file': outputFile,\\\\n    o,\\\\n    help,\\\\n    h,\\\\n    version,\\\\n    v,\\\\n    format: outputFormat,\\\\n    f,\\\\n    ...argv\\\\n  } = minimist(args)\\\\n  if (h || help || v || version) {\\\\n    const res = await spawn('eslint', dargs({ v, version, h, help }))\\\\n    console.log(res.stdout)\\\\n    return\\\\n  }\\\\n  const files = await getFiles({ entries, extension })\\\\n  const output = o || outputFile\\\\n  const format = f || outputFormat || 'stylish'\\\\n  if (!['stylish', 'compact', 'json'].includes(format)) {\\\\n    console.error(\`format \${format} is not supported yet\`)\\\\n    return\\\\n  }\\\\n  const results = await getResults(files, 4, { ...argv, format })\\\\n  const formatted = getFormatted(results, format)\\\\n  if (output) {\\\\n    await writeFile(output, formatted)\\\\n  } else {\\\\n    if (formatted) {\\\\n      console.log(formatted)\\\\n    }\\\\n  }\\\\n  if (results.every((result) => result.status === 'fulfilled')) {\\\\n    return Promise.resolve()\\\\n  }\\\\n  // eslint-disable-next-line prefer-promise-reject-errors\\\\n  return Promise.reject()\\\\n}\\\\n\\",\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/test/ts/index.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]}]"`;
+
+exports[`runs with --help 1`] = `
+"eslint [options] file.js [file.js] [dir]
+
+Basic configuration:
+  --no-eslintrc                   Disable use of configuration from .eslintrc.*
+  -c, --config path::String       Use this configuration, overriding .eslintrc.* config options if present
+  --env [String]                  Specify environments
+  --ext [String]                  Specify JavaScript file extensions
+  --global [String]               Define global variables
+  --parser String                 Specify the parser to be used
+  --parser-options Object         Specify parser options
+  --resolve-plugins-relative-to path::String  A folder where plugins should be resolved from, CWD by default
+
+Specifying rules and plugins:
+  --plugin [String]               Specify plugins
+  --rule Object                   Specify rules
+  --rulesdir [path::String]       Load additional rules from this directory. Deprecated: Use rules from plugins
+
+Fixing problems:
+  --fix                           Automatically fix problems
+  --fix-dry-run                   Automatically fix problems without saving the changes to the file system
+  --fix-type Array                Specify the types of fixes to apply (directive, problem, suggestion, layout)
+
+Ignoring files:
+  --ignore-path path::String      Specify path of ignore file
+  --no-ignore                     Disable use of ignore files and patterns
+  --ignore-pattern [String]       Pattern of files to ignore (in addition to those in .eslintignore)
+
+Using stdin:
+  --stdin                         Lint code provided on <STDIN> - default: false
+  --stdin-filename String         Specify filename to process STDIN as
+
+Handling warnings:
+  --quiet                         Report errors only - default: false
+  --max-warnings Int              Number of warnings to trigger nonzero exit code - default: -1
+
+Output:
+  -o, --output-file path::String  Specify file to write report to
+  -f, --format String             Use a specific output format - default: stylish
+  --color, --no-color             Force enabling/disabling of color
+
+Inline configuration comments:
+  --no-inline-config              Prevent comments from changing config or rules
+  --report-unused-disable-directives  Adds reported errors for unused eslint-disable directives
+
+Caching:
+  --cache                         Only check changed files - default: false
+  --cache-file path::String       Path to the cache file. Deprecated: use --cache-location - default: .eslintcache
+  --cache-location path::String   Path to the cache file or directory
+  --cache-strategy String         Strategy to use for detecting changed files in the cache - either: metadata or content - default: metadata
+
+Miscellaneous:
+  --init                          Run config initialization wizard - default: false
+  --env-info                      Output execution environment information - default: false
+  --no-error-on-unmatched-pattern  Prevent errors when pattern is unmatched
+  --exit-on-fatal-error           Exit with exit code 2 in case of fatal error - default: false
+  --debug                         Output debugging information
+  -h, --help                      Show help
+  -v, --version                   Output the version number
+  --print-config path::String     Print the configuration for the given file"
+`;
+
+exports[`runs with --version 1`] = `"v8.20.0"`;
+
+exports[`runs with -f html 1`] = `""`;
+
+exports[`runs with -f json 1`] = `"[{\\"filePath\\":\\"/src/main/ts/cli.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/main/ts/index.ts\\",\\"messages\\":[{\\"ruleId\\":\\"prefer-promise-reject-errors\\",\\"severity\\":2,\\"message\\":\\"Expected the Promise rejection reason to be an Error.\\",\\"line\\":114,\\"column\\":10,\\"nodeType\\":\\"CallExpression\\",\\"messageId\\":\\"rejectAnError\\",\\"endLine\\":114,\\"endColumn\\":26}],\\"suppressedMessages\\":[],\\"errorCount\\":1,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"source\\":\\"// @ts-ignore\\\\nimport spawn from '@npmcli/promise-spawn'\\\\nimport dargs from 'dargs'\\\\nimport fg from 'fast-glob'\\\\nimport minimist from 'minimist'\\\\nimport { stat, writeFile } from 'node:fs/promises'\\\\n\\\\ntype ESLintFormat = 'stylish' | 'compact' | 'json'\\\\n\\\\nexport type ESLintResult = {\\\\n  stdout: string\\\\n  stderr: string\\\\n}\\\\n\\\\nconst getExtensions = (extension: string | string[]) => {\\\\n  return \`.(\${(Array.isArray(extension) ? extension : [extension])\\\\n    .reduce(\\\\n      (extensions, extension) => [...extensions, ...extension.split(',')],\\\\n      [] as string[],\\\\n    )\\\\n    .map((extension) => extension.replace(/^\\\\\\\\./, ''))\\\\n    .join('|')})\`\\\\n}\\\\n\\\\nconst getFiles = async ({\\\\n  entries,\\\\n  extension,\\\\n}: {\\\\n  entries: string[]\\\\n  extension: string | string[]\\\\n}) => {\\\\n  const patterns = await entries.reduce(async (entries, entry) => {\\\\n    return [\\\\n      ...(await entries),\\\\n      !entry.includes('*') && (await stat(entry)).isDirectory()\\\\n        ? \`\${entry}/**/*\${getExtensions(extension)}\`\\\\n        : entry,\\\\n    ]\\\\n  }, Promise.resolve([] as string[]))\\\\n  return fg(patterns, { onlyFiles: true })\\\\n}\\\\n\\\\nconst getResults = async (files: string[], forks: number, argv: any) => {\\\\n  const eslints = []\\\\n  const offset = files.length / forks\\\\n  for (let f = 0; f < files.length; f += offset) {\\\\n    eslints.push(\\\\n      spawn('eslint', [...files.slice(f, f + offset), ...dargs(argv)]),\\\\n    )\\\\n  }\\\\n  return Promise.allSettled<ESLintResult>(eslints)\\\\n}\\\\n\\\\nconst getFormatted = (\\\\n  results: PromiseSettledResult<Awaited<ESLintResult>>[],\\\\n  format: ESLintFormat,\\\\n) => {\\\\n  const outs = results\\\\n    .map((result) =>\\\\n      result.status === 'fulfilled'\\\\n        ? result.value.stdout\\\\n        : result.reason.stdout,\\\\n    )\\\\n    .filter((result) => result)\\\\n    .sort()\\\\n  if (format === 'json') {\\\\n    return \`[\${outs\\\\n      .map((out) => out.substring(1, out.length - 1))\\\\n      .filter((out) => out)\\\\n      .join(',')}]\`\\\\n  }\\\\n  return outs.join('\\\\\\\\n')\\\\n}\\\\n\\\\nexport const main = async (args: string[]) => {\\\\n  const {\\\\n    _: entries,\\\\n    ext: extension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx'],\\\\n    'output-file': outputFile,\\\\n    o,\\\\n    help,\\\\n    h,\\\\n    version,\\\\n    v,\\\\n    format: outputFormat,\\\\n    f,\\\\n    ...argv\\\\n  } = minimist(args)\\\\n  if (h || help || v || version) {\\\\n    const res = await spawn('eslint', dargs({ v, version, h, help }))\\\\n    console.log(res.stdout)\\\\n    return\\\\n  }\\\\n  const files = await getFiles({ entries, extension })\\\\n  const output = o || outputFile\\\\n  const format = f || outputFormat || 'stylish'\\\\n  if (!['stylish', 'compact', 'json'].includes(format)) {\\\\n    console.error(\`format \${format} is not supported yet\`)\\\\n    return\\\\n  }\\\\n  const results = await getResults(files, 4, { ...argv, format })\\\\n  const formatted = getFormatted(results, format)\\\\n  if (output) {\\\\n    await writeFile(output, formatted)\\\\n  } else {\\\\n    if (formatted) {\\\\n      console.log(formatted)\\\\n    }\\\\n  }\\\\n  if (results.every((result) => result.status === 'fulfilled')) {\\\\n    return Promise.resolve()\\\\n  }\\\\n  // eslint-disable-next-line prefer-promise-reject-errors\\\\n  return Promise.reject()\\\\n}\\\\n\\",\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]},{\\"filePath\\":\\"/src/test/ts/index.ts\\",\\"messages\\":[],\\"suppressedMessages\\":[],\\"errorCount\\":0,\\"fatalErrorCount\\":0,\\"warningCount\\":0,\\"fixableErrorCount\\":0,\\"fixableWarningCount\\":0,\\"usedDeprecatedRules\\":[{\\"ruleId\\":\\"unicorn/no-array-instanceof\\",\\"replacedBy\\":[\\"unicorn/no-instanceof-array\\"]},{\\"ruleId\\":\\"unicorn/prefer-dataset\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-dataset\\"]},{\\"ruleId\\":\\"unicorn/prefer-event-key\\",\\"replacedBy\\":[\\"unicorn/prefer-keyboard-event-key\\"]},{\\"ruleId\\":\\"unicorn/prefer-flat-map\\",\\"replacedBy\\":[\\"unicorn/prefer-array-flat-map\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-append\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-append\\"]},{\\"ruleId\\":\\"unicorn/prefer-node-remove\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-remove\\"]},{\\"ruleId\\":\\"unicorn/prefer-starts-ends-with\\",\\"replacedBy\\":[\\"unicorn/prefer-string-starts-ends-with\\"]},{\\"ruleId\\":\\"unicorn/prefer-text-content\\",\\"replacedBy\\":[\\"unicorn/prefer-dom-node-text-content\\"]}]}]"`;
+
+exports[`runs with -h 1`] = `
+"eslint [options] file.js [file.js] [dir]
+
+Basic configuration:
+  --no-eslintrc                   Disable use of configuration from .eslintrc.*
+  -c, --config path::String       Use this configuration, overriding .eslintrc.* config options if present
+  --env [String]                  Specify environments
+  --ext [String]                  Specify JavaScript file extensions
+  --global [String]               Define global variables
+  --parser String                 Specify the parser to be used
+  --parser-options Object         Specify parser options
+  --resolve-plugins-relative-to path::String  A folder where plugins should be resolved from, CWD by default
+
+Specifying rules and plugins:
+  --plugin [String]               Specify plugins
+  --rule Object                   Specify rules
+  --rulesdir [path::String]       Load additional rules from this directory. Deprecated: Use rules from plugins
+
+Fixing problems:
+  --fix                           Automatically fix problems
+  --fix-dry-run                   Automatically fix problems without saving the changes to the file system
+  --fix-type Array                Specify the types of fixes to apply (directive, problem, suggestion, layout)
+
+Ignoring files:
+  --ignore-path path::String      Specify path of ignore file
+  --no-ignore                     Disable use of ignore files and patterns
+  --ignore-pattern [String]       Pattern of files to ignore (in addition to those in .eslintignore)
+
+Using stdin:
+  --stdin                         Lint code provided on <STDIN> - default: false
+  --stdin-filename String         Specify filename to process STDIN as
+
+Handling warnings:
+  --quiet                         Report errors only - default: false
+  --max-warnings Int              Number of warnings to trigger nonzero exit code - default: -1
+
+Output:
+  -o, --output-file path::String  Specify file to write report to
+  -f, --format String             Use a specific output format - default: stylish
+  --color, --no-color             Force enabling/disabling of color
+
+Inline configuration comments:
+  --no-inline-config              Prevent comments from changing config or rules
+  --report-unused-disable-directives  Adds reported errors for unused eslint-disable directives
+
+Caching:
+  --cache                         Only check changed files - default: false
+  --cache-file path::String       Path to the cache file. Deprecated: use --cache-location - default: .eslintcache
+  --cache-location path::String   Path to the cache file or directory
+  --cache-strategy String         Strategy to use for detecting changed files in the cache - either: metadata or content - default: metadata
+
+Miscellaneous:
+  --init                          Run config initialization wizard - default: false
+  --env-info                      Output execution environment information - default: false
+  --no-error-on-unmatched-pattern  Prevent errors when pattern is unmatched
+  --exit-on-fatal-error           Exit with exit code 2 in case of fatal error - default: false
+  --debug                         Output debugging information
+  -h, --help                      Show help
+  -v, --version                   Output the version number
+  --print-config path::String     Print the configuration for the given file"
+`;
+
+exports[`runs with -o eslint.txt 1`] = `
+"[0m[0m
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m114:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[0m
+[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m"
+`;
+
+exports[`runs with -v 1`] = `"v8.20.0"`;
+
+exports[`runs with directory 1`] = `
+"[0m[0m
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m114:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[0m
+[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m"
+`;
+
+exports[`runs with directory and ext 1`] = `
+"[0m[0m
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m114:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[0m
+[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m"
+`;
+
+exports[`runs with file 1`] = `""`;
+
+exports[`runs with pattern 1`] = `
+"[0m[0m
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m114:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[0m
+[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m"
+`;
