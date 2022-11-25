@@ -1,3 +1,8 @@
+## [1.2.0](https://github.com/qiwi/paralint/compare/v1.1.2...v1.2.0) (2022-11-25)
+
+### Features
+* feat: ignore pattern (#5) ([e3ba64c](https://github.com/qiwi/paralint/commit/e3ba64c407fb7218e321ca877ddd3572cd416376))
+
 ## [1.1.2](https://github.com/qiwi/paralint/compare/v1.1.1...v1.1.2) (2022-11-24)
 
 ### Fixes & improvements
