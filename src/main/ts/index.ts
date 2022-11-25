@@ -3,11 +3,12 @@ import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
 import minimist from 'minimist'
-import { stat, writeFile } from 'node:fs/promises'
+import { statSync, writeFileSync } from 'node:fs'
 import { cpus } from 'node:os'
 
 type ParaLintArgs = {
   entries: string[]
+  ignorePattern: string | string[]
   help: boolean
   version: boolean
   extension: string | string[]
@@ -26,37 +27,54 @@ const cpusLength = cpus().length
 
 const defaultExtension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx']
 
+const defaultIgnorePattern = ['node_modules']
+
 const compatibleFormats = [
   'stylish',
   'compact',
   'json',
 ] as ParaLintArgs['format'][]
 
+const isDirectory: (path: string) => boolean = (path) => {
+  try {
+    return statSync(path).isDirectory()
+  } catch (e) {
+    return false
+  }
+}
+
 const getExtensions: (extension: ParaLintArgs['extension']) => string = (
   extension,
 ) => {
   return `.(${(Array.isArray(extension) ? extension : [extension])
-    .reduce(
+    .reduce<string[]>(
       (extensions, extension) => [...extensions, ...extension.split(',')],
-      [] as string[],
+      [],
     )
     .map((extension) => extension.replace(/^\./, ''))
     .join('|')})`
 }
 
-const getFiles: ({
+const getFiles: (args: ParaLintArgs) => string[] = ({
   entries,
   extension,
-}: ParaLintArgs) => Promise<string[]> = async ({ entries, extension }) => {
-  const patterns = await entries.reduce(async (entries, entry) => {
-    return [
-      ...(await entries),
-      !entry.includes('*') && (await stat(entry)).isDirectory()
-        ? `${entry}/**/*${getExtensions(extension)}`
-        : entry,
-    ]
-  }, Promise.resolve([] as string[]))
-  return fg(patterns, { onlyFiles: true })
+  ignorePattern,
+}) => {
+  const extensions = getExtensions(extension)
+  const patterns = entries.reduce<string[]>(
+    (entries, entry) => [
+      ...entries,
+      isDirectory(entry) ? `${entry}/**/*${extensions}` : entry,
+    ],
+    [],
+  )
+  return fg.sync(patterns, {
+    onlyFiles: true,
+    ignore: [
+      ...defaultIgnorePattern,
+      ...(Array.isArray(ignorePattern) ? ignorePattern : [ignorePattern]),
+    ],
+  })
 }
 
 const getResults: (
@@ -102,6 +120,7 @@ const getFormatted: (
 const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   const {
     _: entries,
+    'ignore-pattern': ignorePattern = [],
     h,
     help = h,
     v,
@@ -116,6 +135,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   } = minimist(args)
   return {
     entries,
+    ignorePattern,
     help,
     version,
     extension,
@@ -128,7 +148,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
 
 const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
   const { format, outputFile, concurrency, argv } = args
-  const files = await getFiles(args)
+  const files = getFiles(args)
   const results = await getResults(
     files,
     Math.min(Math.max(1, concurrency | 0), cpusLength),
@@ -136,7 +156,7 @@ const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
   )
   const formatted = getFormatted(results, format)
   if (outputFile) {
-    await writeFile(outputFile, formatted)
+    writeFileSync(outputFile, formatted)
   } else if (formatted) {
     console.log(formatted)
   }
