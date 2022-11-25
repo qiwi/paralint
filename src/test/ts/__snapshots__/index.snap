@@ -2,8 +2,6 @@
 
 exports[`runs with --format html 1`] = `"format html is not supported yet"`;
 
-exports[`runs with --format html 2`] = `"format html is not supported yet"`;
-
 exports[`runs with --format json and --output-file eslint.json 1`] = `
 Array [
   Object {
@@ -76,8 +74,8 @@ Array [
       Object {
         "column": 10,
         "endColumn": 26,
-        "endLine": 147,
-        "line": 147,
+        "endLine": 167,
+        "line": 167,
         "message": "Expected the Promise rejection reason to be an Error.",
         "messageId": "rejectAnError",
         "nodeType": "CallExpression",
@@ -87,8 +85,8 @@ Array [
       Object {
         "column": 12,
         "endColumn": 28,
-        "endLine": 161,
-        "line": 161,
+        "endLine": 181,
+        "line": 181,
         "message": "Expected the Promise rejection reason to be an Error.",
         "messageId": "rejectAnError",
         "nodeType": "CallExpression",
@@ -101,11 +99,12 @@ import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
 import minimist from 'minimist'
-import { stat, writeFile } from 'node:fs/promises'
+import { statSync, writeFileSync } from 'node:fs'
 import { cpus } from 'node:os'
 
 type ParaLintArgs = {
   entries: string[]
+  ignorePattern: string | string[]
   help: boolean
   version: boolean
   extension: string | string[]
@@ -124,37 +123,54 @@ const cpusLength = cpus().length
 
 const defaultExtension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx']
 
+const defaultIgnorePattern = ['node_modules']
+
 const compatibleFormats = [
   'stylish',
   'compact',
   'json',
 ] as ParaLintArgs['format'][]
 
+const isDirectory: (path: string) => boolean = (path) => {
+  try {
+    return statSync(path).isDirectory()
+  } catch (e) {
+    return false
+  }
+}
+
 const getExtensions: (extension: ParaLintArgs['extension']) => string = (
   extension,
 ) => {
   return \`.(\${(Array.isArray(extension) ? extension : [extension])
-    .reduce(
+    .reduce<string[]>(
       (extensions, extension) => [...extensions, ...extension.split(',')],
-      [] as string[],
+      [],
     )
     .map((extension) => extension.replace(/^\\\\./, ''))
     .join('|')})\`
 }
 
-const getFiles: ({
+const getFiles: (args: ParaLintArgs) => string[] = ({
   entries,
   extension,
-}: ParaLintArgs) => Promise<string[]> = async ({ entries, extension }) => {
-  const patterns = await entries.reduce(async (entries, entry) => {
-    return [
-      ...(await entries),
-      !entry.includes('*') && (await stat(entry)).isDirectory()
-        ? \`\${entry}/**/*\${getExtensions(extension)}\`
-        : entry,
-    ]
-  }, Promise.resolve([] as string[]))
-  return fg(patterns, { onlyFiles: true })
+  ignorePattern,
+}) => {
+  const extensions = getExtensions(extension)
+  const patterns = entries.reduce<string[]>(
+    (entries, entry) => [
+      ...entries,
+      isDirectory(entry) ? \`\${entry}/**/*\${extensions}\` : entry,
+    ],
+    [],
+  )
+  return fg.sync(patterns, {
+    onlyFiles: true,
+    ignore: [
+      ...defaultIgnorePattern,
+      ...(Array.isArray(ignorePattern) ? ignorePattern : [ignorePattern]),
+    ],
+  })
 }
 
 const getResults: (
@@ -200,6 +216,7 @@ const getFormatted: (
 const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   const {
     _: entries,
+    'ignore-pattern': ignorePattern = [],
     h,
     help = h,
     v,
@@ -214,6 +231,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   } = minimist(args)
   return {
     entries,
+    ignorePattern,
     help,
     version,
     extension,
@@ -226,7 +244,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
 
 const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
   const { format, outputFile, concurrency, argv } = args
-  const files = await getFiles(args)
+  const files = getFiles(args)
   const results = await getResults(
     files,
     Math.min(Math.max(1, concurrency | 0), cpusLength),
@@ -234,7 +252,7 @@ const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
   )
   const formatted = getFormatted(results, format)
   if (outputFile) {
-    await writeFile(outputFile, formatted)
+    writeFileSync(outputFile, formatted)
   } else if (formatted) {
     console.log(formatted)
   }
@@ -443,8 +461,6 @@ exports[`runs with --version 1`] = `"v8.20.0"`;
 
 exports[`runs with -f html 1`] = `"format html is not supported yet"`;
 
-exports[`runs with -f html 2`] = `"format html is not supported yet"`;
-
 exports[`runs with -f json 1`] = `
 Array [
   Object {
@@ -517,8 +533,8 @@ Array [
       Object {
         "column": 10,
         "endColumn": 26,
-        "endLine": 147,
-        "line": 147,
+        "endLine": 167,
+        "line": 167,
         "message": "Expected the Promise rejection reason to be an Error.",
         "messageId": "rejectAnError",
         "nodeType": "CallExpression",
@@ -528,8 +544,8 @@ Array [
       Object {
         "column": 12,
         "endColumn": 28,
-        "endLine": 161,
-        "line": 161,
+        "endLine": 181,
+        "line": 181,
         "message": "Expected the Promise rejection reason to be an Error.",
         "messageId": "rejectAnError",
         "nodeType": "CallExpression",
@@ -542,11 +558,12 @@ import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
 import minimist from 'minimist'
-import { stat, writeFile } from 'node:fs/promises'
+import { statSync, writeFileSync } from 'node:fs'
 import { cpus } from 'node:os'
 
 type ParaLintArgs = {
   entries: string[]
+  ignorePattern: string | string[]
   help: boolean
   version: boolean
   extension: string | string[]
@@ -565,37 +582,54 @@ const cpusLength = cpus().length
 
 const defaultExtension = ['js', 'ts', 'cjs', 'mjs', 'jsx', 'tsx']
 
+const defaultIgnorePattern = ['node_modules']
+
 const compatibleFormats = [
   'stylish',
   'compact',
   'json',
 ] as ParaLintArgs['format'][]
 
+const isDirectory: (path: string) => boolean = (path) => {
+  try {
+    return statSync(path).isDirectory()
+  } catch (e) {
+    return false
+  }
+}
+
 const getExtensions: (extension: ParaLintArgs['extension']) => string = (
   extension,
 ) => {
   return \`.(\${(Array.isArray(extension) ? extension : [extension])
-    .reduce(
+    .reduce<string[]>(
       (extensions, extension) => [...extensions, ...extension.split(',')],
-      [] as string[],
+      [],
     )
     .map((extension) => extension.replace(/^\\\\./, ''))
     .join('|')})\`
 }
 
-const getFiles: ({
+const getFiles: (args: ParaLintArgs) => string[] = ({
   entries,
   extension,
-}: ParaLintArgs) => Promise<string[]> = async ({ entries, extension }) => {
-  const patterns = await entries.reduce(async (entries, entry) => {
-    return [
-      ...(await entries),
-      !entry.includes('*') && (await stat(entry)).isDirectory()
-        ? \`\${entry}/**/*\${getExtensions(extension)}\`
-        : entry,
-    ]
-  }, Promise.resolve([] as string[]))
-  return fg(patterns, { onlyFiles: true })
+  ignorePattern,
+}) => {
+  const extensions = getExtensions(extension)
+  const patterns = entries.reduce<string[]>(
+    (entries, entry) => [
+      ...entries,
+      isDirectory(entry) ? \`\${entry}/**/*\${extensions}\` : entry,
+    ],
+    [],
+  )
+  return fg.sync(patterns, {
+    onlyFiles: true,
+    ignore: [
+      ...defaultIgnorePattern,
+      ...(Array.isArray(ignorePattern) ? ignorePattern : [ignorePattern]),
+    ],
+  })
 }
 
 const getResults: (
@@ -641,6 +675,7 @@ const getFormatted: (
 const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   const {
     _: entries,
+    'ignore-pattern': ignorePattern = [],
     h,
     help = h,
     v,
@@ -655,6 +690,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   } = minimist(args)
   return {
     entries,
+    ignorePattern,
     help,
     version,
     extension,
@@ -667,7 +703,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
 
 const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
   const { format, outputFile, concurrency, argv } = args
-  const files = await getFiles(args)
+  const files = getFiles(args)
   const results = await getResults(
     files,
     Math.min(Math.max(1, concurrency | 0), cpusLength),
@@ -675,7 +711,7 @@ const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
   )
   const formatted = getFormatted(results, format)
   if (outputFile) {
-    await writeFile(outputFile, formatted)
+    writeFileSync(outputFile, formatted)
   } else if (formatted) {
     console.log(formatted)
   }
@@ -883,8 +919,8 @@ Miscellaneous:
 exports[`runs with -o eslint.txt 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
 [0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
@@ -895,8 +931,8 @@ exports[`runs with -v 1`] = `"v8.20.0"`;
 exports[`runs with directory 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
 [0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
@@ -905,8 +941,8 @@ exports[`runs with directory 1`] = `
 exports[`runs with directory and ext 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
 [0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"
@@ -917,8 +953,18 @@ exports[`runs with file 1`] = `""`;
 exports[`runs with pattern 1`] = `
 "[0m[0m
 [0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m147:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m161:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[0m
+[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m"
+`;
+
+exports[`runs with pattern root, ext and ignore pattern 1`] = `
+"[0m[0m
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
 [0m[0m
 [0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m"

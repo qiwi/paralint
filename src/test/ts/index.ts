@@ -82,6 +82,17 @@ test('runs with pattern', async () => {
   expect(fix(result.stdout)).toMatchSnapshot()
 })
 
+test('runs with pattern root, ext and ignore pattern', async () => {
+  const result = await paralint([
+    '.',
+    '--ext',
+    'ts',
+    '--ignore-pattern',
+    'target',
+  ])
+  expect(fix(result.stdout)).toMatchSnapshot()
+})
+
 test('runs with -f json', async () => {
   const result = await paralint([srcPattern, '-f', 'json'])
   expect(json(fix(result.stdout))).toMatchSnapshot()
