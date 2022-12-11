@@ -521,7 +521,7 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@typescript-eslint/eslint-plugin@^5.45.0":
+"@typescript-eslint/eslint-plugin@^5.46.0":
   version "5.46.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-5.46.0.tgz#9a96a713b9616c783501a3c1774c9e2b40217ad0"
   integrity sha512-QrZqaIOzJAjv0sfjY4EjbXUi3ZOFpKfzntx22gPGr9pmFcTjcFw/1sS1LJhEubfAGwuLjNrPV0rH+D1/XZFy7Q==
@@ -536,7 +536,7 @@
     semver "^7.3.7"
     tsutils "^3.21.0"
 
-"@typescript-eslint/parser@^5.45.0":
+"@typescript-eslint/parser@^5.46.0":
   version "5.46.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-5.46.0.tgz#002d8e67122947922a62547acfed3347cbf2c0b6"
   integrity sha512-joNO6zMGUZg+C73vwrKXCd8usnsmOYmgW/w5ZW0pG0RGvqeznjtGDk61EqqTpNrFLUYBW2RSBFrxdAZMqA4OZA==
@@ -1521,13 +1521,13 @@ eslint-config-prettier@^8.5.0:
   resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.5.0.tgz#5a81680ec934beca02c7b1a61cf8ca34b66feab1"
   integrity sha512-obmWKLUNCnhtQRKc+tmnYuQl0pFU1ibYJQ5BGhTVB08bHe9wC8qUeG7c08dj9XX+AuPj1YSGSQIHl1pnDHZR0Q==
 
-eslint-config-qiwi@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/eslint-config-qiwi/-/eslint-config-qiwi-2.0.4.tgz#91a0a8d3c4b232661953253f3fb1c640db55f191"
-  integrity sha512-qt3MUFSva72eONRNXA57r7Du4PBFWqsrBTXlSo9mh5BqjHUau0bnJKFA1a1dEAjnygFAMDVppxGiJeM7CkJZhw==
+eslint-config-qiwi@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/eslint-config-qiwi/-/eslint-config-qiwi-2.0.5.tgz#7921a3dece618bbb856a78c855732d77d78c17b0"
+  integrity sha512-WrZdFiTLKnRbSh34ksLzCiDdQXRXzP35xdniTi4zifm7K4IUVKUZLtaxbTnbGZj0o/hFUL/0IqeU3SL+A4r4aw==
   dependencies:
-    "@typescript-eslint/eslint-plugin" "^5.45.0"
-    "@typescript-eslint/parser" "^5.45.0"
+    "@typescript-eslint/eslint-plugin" "^5.46.0"
+    "@typescript-eslint/parser" "^5.46.0"
     eslint-plugin-react "^7.31.11"
     eslint-plugin-react-hooks "^4.6.0"
     eslint-plugin-sonarjs "^0.17.0"
