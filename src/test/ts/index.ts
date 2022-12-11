@@ -1,4 +1,3 @@
-import '../../main/ts/promise-spawn.d.ts'
 import spawn from '@npmcli/promise-spawn'
 import { expect } from 'earljs'
 import { readFile } from 'node:fs/promises'
@@ -26,7 +25,7 @@ const paralintCli = resolve(__dirname, '../../../target/es6/cli.js')
 
 const paralint = async (args: string[]) => {
   try {
-    return await spawn('node', [paralintCli, '--no-inline-config', ...args])
+    return await spawn('node', [paralintCli, '--no-inline-config', '--concurrency=1', ...args])
   } catch (e) {
     return e as ParaLintResult
   }

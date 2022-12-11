@@ -1,4 +1,3 @@
-import './promise-spawn.d.ts'
 import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
