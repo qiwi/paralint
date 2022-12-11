@@ -484,10 +484,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.6.2.tgz#ffc5f0f099d27887c8d9067b54e55090fcd54126"
   integrity sha512-KcfkBq9H4PI6Vpu5B/KoPeuVDAbmi+2mDBqGPGUgoL7yXQtcWGu2vJWmmRkneWK3Rh0nIAX192Aa87AqKHYChQ==
 
-"@types/node@^18.11.12":
-  version "18.11.12"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.12.tgz#89e7f8aa8c88abf432f9bd594888144d7dba10aa"
-  integrity sha512-FgD3NtTAKvyMmD44T07zz2fEf+OKwutgBCEVM8GcvMGVGaDktiLNTDvPwC/LUe3PinMW+X6CuLOF2Ui1mAlSXg==
+"@types/node@^18.11.13":
+  version "18.11.13"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.13.tgz#dff34f226ec1ac0432ae3b136ec5552bd3b9c0fe"
+  integrity sha512-IASpMGVcWpUsx5xBOrxMj7Bl8lqfuTY7FKAnPmu5cHkfQVWF8GulWS1jbRqA934qZL35xh5xN/+Xe/i26Bod4w==
 
 "@types/normalize-package-data@^2.4.0", "@types/normalize-package-data@^2.4.1":
   version "2.4.1"
@@ -1521,10 +1521,10 @@ eslint-config-prettier@^8.5.0:
   resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.5.0.tgz#5a81680ec934beca02c7b1a61cf8ca34b66feab1"
   integrity sha512-obmWKLUNCnhtQRKc+tmnYuQl0pFU1ibYJQ5BGhTVB08bHe9wC8qUeG7c08dj9XX+AuPj1YSGSQIHl1pnDHZR0Q==
 
-eslint-config-qiwi@^2.0.5:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/eslint-config-qiwi/-/eslint-config-qiwi-2.0.5.tgz#7921a3dece618bbb856a78c855732d77d78c17b0"
-  integrity sha512-WrZdFiTLKnRbSh34ksLzCiDdQXRXzP35xdniTi4zifm7K4IUVKUZLtaxbTnbGZj0o/hFUL/0IqeU3SL+A4r4aw==
+eslint-config-qiwi@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/eslint-config-qiwi/-/eslint-config-qiwi-2.0.6.tgz#cef0ea6fc8b665770a3cd3ff6342780ca292acfe"
+  integrity sha512-4Djh7lGqPllEJYhu+bZVzoHRmC7+7tVv+6fdNL2WxrxLjKQ7y2pFMUbWtYZcq3ghOniF+mmvlFv7XiTi5FEkSw==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^5.46.0"
     "@typescript-eslint/parser" "^5.46.0"

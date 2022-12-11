@@ -10,92 +10,110 @@ Array [
     "filePath": "/src/main/ts/cli.ts",
     "fixableErrorCount": 0,
     "fixableWarningCount": 0,
-    "messages": Array [],
-    "suppressedMessages": Array [],
-    "usedDeprecatedRules": Array [
+    "messages": Array [
       Object {
-        "replacedBy": Array [
-          "unicorn/no-instanceof-array",
-        ],
-        "ruleId": "unicorn/no-array-instanceof",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-dataset",
-        ],
-        "ruleId": "unicorn/prefer-dataset",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-keyboard-event-key",
-        ],
-        "ruleId": "unicorn/prefer-event-key",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-array-flat-map",
-        ],
-        "ruleId": "unicorn/prefer-flat-map",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-append",
-        ],
-        "ruleId": "unicorn/prefer-node-append",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-remove",
-        ],
-        "ruleId": "unicorn/prefer-node-remove",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-string-starts-ends-with",
-        ],
-        "ruleId": "unicorn/prefer-starts-ends-with",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-text-content",
-        ],
-        "ruleId": "unicorn/prefer-text-content",
+        "column": 4,
+        "endColumn": 9,
+        "endLine": 7,
+        "line": 7,
+        "message": "Prefer top-level await over using a promise chain.",
+        "messageId": "promise",
+        "nodeType": "Identifier",
+        "ruleId": "unicorn/prefer-top-level-await",
+        "severity": 1,
       },
     ],
-    "warningCount": 0,
+    "source": "#!/usr/bin/env node
+
+import { main } from './index'
+
+main(process.argv.slice(2))
+  .then(() => process.exit(0))
+  .catch(() => process.exit(1))
+",
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [],
+    "warningCount": 1,
   },
   Object {
-    "errorCount": 2,
+    "errorCount": 0,
     "fatalErrorCount": 0,
     "filePath": "/src/main/ts/index.ts",
     "fixableErrorCount": 0,
     "fixableWarningCount": 0,
     "messages": Array [
       Object {
-        "column": 10,
-        "endColumn": 26,
-        "endLine": 167,
-        "line": 167,
-        "message": "Expected the Promise rejection reason to be an Error.",
-        "messageId": "rejectAnError",
-        "nodeType": "CallExpression",
-        "ruleId": "prefer-promise-reject-errors",
-        "severity": 2,
+        "column": 24,
+        "endColumn": 27,
+        "endLine": 17,
+        "line": 17,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 1,
+        "suggestions": Array [
+          Object {
+            "desc": "Use \`unknown\` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": Object {
+              "range": Array [
+                459,
+                462,
+              ],
+              "text": "unknown",
+            },
+            "messageId": "suggestUnknown",
+          },
+          Object {
+            "desc": "Use \`never\` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": Object {
+              "range": Array [
+                459,
+                462,
+              ],
+              "text": "never",
+            },
+            "messageId": "suggestNever",
+          },
+        ],
       },
       Object {
-        "column": 12,
-        "endColumn": 28,
-        "endLine": 181,
-        "line": 181,
-        "message": "Expected the Promise rejection reason to be an Error.",
-        "messageId": "rejectAnError",
-        "nodeType": "CallExpression",
-        "ruleId": "prefer-promise-reject-errors",
-        "severity": 2,
+        "column": 24,
+        "endColumn": 27,
+        "endLine": 82,
+        "line": 82,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 1,
+        "suggestions": Array [
+          Object {
+            "desc": "Use \`unknown\` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": Object {
+              "range": Array [
+                1857,
+                1860,
+              ],
+              "text": "unknown",
+            },
+            "messageId": "suggestUnknown",
+          },
+          Object {
+            "desc": "Use \`never\` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": Object {
+              "range": Array [
+                1857,
+                1860,
+              ],
+              "text": "never",
+            },
+            "messageId": "suggestNever",
+          },
+        ],
       },
     ],
-    "source": "// @ts-ignore
-import spawn from '@npmcli/promise-spawn'
+    "source": "import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
 import minimist from 'minimist'
@@ -134,7 +152,7 @@ const compatibleFormats = [
 const isDirectory: (path: string) => boolean = (path) => {
   try {
     return statSync(path).isDirectory()
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -202,12 +220,12 @@ const getFormatted: (
         ? result.value.stdout
         : result.reason.stdout,
     )
-    .filter((out) => out)
+    .filter(Boolean)
     .sort()
   if (format === 'json') {
     return \`[\${outs
-      .map((out) => out.substring(1, out.length - 1))
-      .filter((out) => out)
+      .map((out) => out.slice(1, -1))
+      .filter(Boolean)
       .join(',')}]\`
   }
   return outs.join('\\\\n')
@@ -242,7 +260,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   }
 }
 
-const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
+const lint: (args: ParaLintArgs) => Promise<void> = async (args) => {
   const { format, outputFile, concurrency, argv } = args
   const files = getFiles(args)
   const results = await getResults(
@@ -257,80 +275,32 @@ const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
     console.log(formatted)
   }
   if (results.every(({ status }) => status === 'fulfilled')) {
-    return Promise.resolve()
+    return
   }
-  // eslint-disable-next-line prefer-promise-reject-errors
-  return Promise.reject()
+
+  const err = results.find(({status}) => status === 'rejected') as PromiseRejectedResult
+  throw new Error(err?.reason)
 }
 
-export const main: (argv: string[]) => Promise<any> = async (argv) => {
+export const main: (argv: string[]) => Promise<void> = async (argv) => {
   const args = getArgs(argv)
   const { help, version, format } = args
   if (help || version) {
     const res = await spawn('eslint', dargs({ version, help }))
     console.log(res.stdout)
-    return Promise.resolve()
+    return
   }
   if (!compatibleFormats.includes(format)) {
-    console.error(\`format \${format} is not supported yet\`)
-    // eslint-disable-next-line prefer-promise-reject-errors
-    return Promise.reject()
+    const msg = \`format \${format} is not supported yet\`
+    console.error(msg)
+    throw new Error(msg)
   }
   return lint(args)
 }
 ",
     "suppressedMessages": Array [],
-    "usedDeprecatedRules": Array [
-      Object {
-        "replacedBy": Array [
-          "unicorn/no-instanceof-array",
-        ],
-        "ruleId": "unicorn/no-array-instanceof",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-dataset",
-        ],
-        "ruleId": "unicorn/prefer-dataset",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-keyboard-event-key",
-        ],
-        "ruleId": "unicorn/prefer-event-key",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-array-flat-map",
-        ],
-        "ruleId": "unicorn/prefer-flat-map",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-append",
-        ],
-        "ruleId": "unicorn/prefer-node-append",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-remove",
-        ],
-        "ruleId": "unicorn/prefer-node-remove",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-string-starts-ends-with",
-        ],
-        "ruleId": "unicorn/prefer-starts-ends-with",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-text-content",
-        ],
-        "ruleId": "unicorn/prefer-text-content",
-      },
-    ],
-    "warningCount": 0,
+    "usedDeprecatedRules": Array [],
+    "warningCount": 2,
   },
   Object {
     "errorCount": 0,
@@ -340,56 +310,7 @@ export const main: (argv: string[]) => Promise<any> = async (argv) => {
     "fixableWarningCount": 0,
     "messages": Array [],
     "suppressedMessages": Array [],
-    "usedDeprecatedRules": Array [
-      Object {
-        "replacedBy": Array [
-          "unicorn/no-instanceof-array",
-        ],
-        "ruleId": "unicorn/no-array-instanceof",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-dataset",
-        ],
-        "ruleId": "unicorn/prefer-dataset",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-keyboard-event-key",
-        ],
-        "ruleId": "unicorn/prefer-event-key",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-array-flat-map",
-        ],
-        "ruleId": "unicorn/prefer-flat-map",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-append",
-        ],
-        "ruleId": "unicorn/prefer-node-append",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-remove",
-        ],
-        "ruleId": "unicorn/prefer-node-remove",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-string-starts-ends-with",
-        ],
-        "ruleId": "unicorn/prefer-starts-ends-with",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-text-content",
-        ],
-        "ruleId": "unicorn/prefer-text-content",
-      },
-    ],
+    "usedDeprecatedRules": Array [],
     "warningCount": 0,
   },
 ]
@@ -457,7 +378,7 @@ Miscellaneous:
   --print-config path::String     Print the configuration for the given file"
 `;
 
-exports[`runs with --version 1`] = `"v8.20.0"`;
+exports[`runs with --version 1`] = `"v8.29.0"`;
 
 exports[`runs with -f html 1`] = `"format html is not supported yet"`;
 
@@ -469,92 +390,110 @@ Array [
     "filePath": "/src/main/ts/cli.ts",
     "fixableErrorCount": 0,
     "fixableWarningCount": 0,
-    "messages": Array [],
-    "suppressedMessages": Array [],
-    "usedDeprecatedRules": Array [
+    "messages": Array [
       Object {
-        "replacedBy": Array [
-          "unicorn/no-instanceof-array",
-        ],
-        "ruleId": "unicorn/no-array-instanceof",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-dataset",
-        ],
-        "ruleId": "unicorn/prefer-dataset",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-keyboard-event-key",
-        ],
-        "ruleId": "unicorn/prefer-event-key",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-array-flat-map",
-        ],
-        "ruleId": "unicorn/prefer-flat-map",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-append",
-        ],
-        "ruleId": "unicorn/prefer-node-append",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-remove",
-        ],
-        "ruleId": "unicorn/prefer-node-remove",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-string-starts-ends-with",
-        ],
-        "ruleId": "unicorn/prefer-starts-ends-with",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-text-content",
-        ],
-        "ruleId": "unicorn/prefer-text-content",
+        "column": 4,
+        "endColumn": 9,
+        "endLine": 7,
+        "line": 7,
+        "message": "Prefer top-level await over using a promise chain.",
+        "messageId": "promise",
+        "nodeType": "Identifier",
+        "ruleId": "unicorn/prefer-top-level-await",
+        "severity": 1,
       },
     ],
-    "warningCount": 0,
+    "source": "#!/usr/bin/env node
+
+import { main } from './index'
+
+main(process.argv.slice(2))
+  .then(() => process.exit(0))
+  .catch(() => process.exit(1))
+",
+    "suppressedMessages": Array [],
+    "usedDeprecatedRules": Array [],
+    "warningCount": 1,
   },
   Object {
-    "errorCount": 2,
+    "errorCount": 0,
     "fatalErrorCount": 0,
     "filePath": "/src/main/ts/index.ts",
     "fixableErrorCount": 0,
     "fixableWarningCount": 0,
     "messages": Array [
       Object {
-        "column": 10,
-        "endColumn": 26,
-        "endLine": 167,
-        "line": 167,
-        "message": "Expected the Promise rejection reason to be an Error.",
-        "messageId": "rejectAnError",
-        "nodeType": "CallExpression",
-        "ruleId": "prefer-promise-reject-errors",
-        "severity": 2,
+        "column": 24,
+        "endColumn": 27,
+        "endLine": 17,
+        "line": 17,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 1,
+        "suggestions": Array [
+          Object {
+            "desc": "Use \`unknown\` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": Object {
+              "range": Array [
+                459,
+                462,
+              ],
+              "text": "unknown",
+            },
+            "messageId": "suggestUnknown",
+          },
+          Object {
+            "desc": "Use \`never\` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": Object {
+              "range": Array [
+                459,
+                462,
+              ],
+              "text": "never",
+            },
+            "messageId": "suggestNever",
+          },
+        ],
       },
       Object {
-        "column": 12,
-        "endColumn": 28,
-        "endLine": 181,
-        "line": 181,
-        "message": "Expected the Promise rejection reason to be an Error.",
-        "messageId": "rejectAnError",
-        "nodeType": "CallExpression",
-        "ruleId": "prefer-promise-reject-errors",
-        "severity": 2,
+        "column": 24,
+        "endColumn": 27,
+        "endLine": 82,
+        "line": 82,
+        "message": "Unexpected any. Specify a different type.",
+        "messageId": "unexpectedAny",
+        "nodeType": "TSAnyKeyword",
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 1,
+        "suggestions": Array [
+          Object {
+            "desc": "Use \`unknown\` instead, this will force you to explicitly, and safely assert the type is correct.",
+            "fix": Object {
+              "range": Array [
+                1857,
+                1860,
+              ],
+              "text": "unknown",
+            },
+            "messageId": "suggestUnknown",
+          },
+          Object {
+            "desc": "Use \`never\` instead, this is useful when instantiating generic type parameters that you don't need to know the type of.",
+            "fix": Object {
+              "range": Array [
+                1857,
+                1860,
+              ],
+              "text": "never",
+            },
+            "messageId": "suggestNever",
+          },
+        ],
       },
     ],
-    "source": "// @ts-ignore
-import spawn from '@npmcli/promise-spawn'
+    "source": "import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
 import minimist from 'minimist'
@@ -593,7 +532,7 @@ const compatibleFormats = [
 const isDirectory: (path: string) => boolean = (path) => {
   try {
     return statSync(path).isDirectory()
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -661,12 +600,12 @@ const getFormatted: (
         ? result.value.stdout
         : result.reason.stdout,
     )
-    .filter((out) => out)
+    .filter(Boolean)
     .sort()
   if (format === 'json') {
     return \`[\${outs
-      .map((out) => out.substring(1, out.length - 1))
-      .filter((out) => out)
+      .map((out) => out.slice(1, -1))
+      .filter(Boolean)
       .join(',')}]\`
   }
   return outs.join('\\\\n')
@@ -701,7 +640,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   }
 }
 
-const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
+const lint: (args: ParaLintArgs) => Promise<void> = async (args) => {
   const { format, outputFile, concurrency, argv } = args
   const files = getFiles(args)
   const results = await getResults(
@@ -716,80 +655,32 @@ const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
     console.log(formatted)
   }
   if (results.every(({ status }) => status === 'fulfilled')) {
-    return Promise.resolve()
+    return
   }
-  // eslint-disable-next-line prefer-promise-reject-errors
-  return Promise.reject()
+
+  const err = results.find(({status}) => status === 'rejected') as PromiseRejectedResult
+  throw new Error(err?.reason)
 }
 
-export const main: (argv: string[]) => Promise<any> = async (argv) => {
+export const main: (argv: string[]) => Promise<void> = async (argv) => {
   const args = getArgs(argv)
   const { help, version, format } = args
   if (help || version) {
     const res = await spawn('eslint', dargs({ version, help }))
     console.log(res.stdout)
-    return Promise.resolve()
+    return
   }
   if (!compatibleFormats.includes(format)) {
-    console.error(\`format \${format} is not supported yet\`)
-    // eslint-disable-next-line prefer-promise-reject-errors
-    return Promise.reject()
+    const msg = \`format \${format} is not supported yet\`
+    console.error(msg)
+    throw new Error(msg)
   }
   return lint(args)
 }
 ",
     "suppressedMessages": Array [],
-    "usedDeprecatedRules": Array [
-      Object {
-        "replacedBy": Array [
-          "unicorn/no-instanceof-array",
-        ],
-        "ruleId": "unicorn/no-array-instanceof",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-dataset",
-        ],
-        "ruleId": "unicorn/prefer-dataset",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-keyboard-event-key",
-        ],
-        "ruleId": "unicorn/prefer-event-key",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-array-flat-map",
-        ],
-        "ruleId": "unicorn/prefer-flat-map",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-append",
-        ],
-        "ruleId": "unicorn/prefer-node-append",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-remove",
-        ],
-        "ruleId": "unicorn/prefer-node-remove",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-string-starts-ends-with",
-        ],
-        "ruleId": "unicorn/prefer-starts-ends-with",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-text-content",
-        ],
-        "ruleId": "unicorn/prefer-text-content",
-      },
-    ],
-    "warningCount": 0,
+    "usedDeprecatedRules": Array [],
+    "warningCount": 2,
   },
   Object {
     "errorCount": 0,
@@ -799,56 +690,7 @@ export const main: (argv: string[]) => Promise<any> = async (argv) => {
     "fixableWarningCount": 0,
     "messages": Array [],
     "suppressedMessages": Array [],
-    "usedDeprecatedRules": Array [
-      Object {
-        "replacedBy": Array [
-          "unicorn/no-instanceof-array",
-        ],
-        "ruleId": "unicorn/no-array-instanceof",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-dataset",
-        ],
-        "ruleId": "unicorn/prefer-dataset",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-keyboard-event-key",
-        ],
-        "ruleId": "unicorn/prefer-event-key",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-array-flat-map",
-        ],
-        "ruleId": "unicorn/prefer-flat-map",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-append",
-        ],
-        "ruleId": "unicorn/prefer-node-append",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-remove",
-        ],
-        "ruleId": "unicorn/prefer-node-remove",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-string-starts-ends-with",
-        ],
-        "ruleId": "unicorn/prefer-starts-ends-with",
-      },
-      Object {
-        "replacedBy": Array [
-          "unicorn/prefer-dom-node-text-content",
-        ],
-        "ruleId": "unicorn/prefer-text-content",
-      },
-    ],
+    "usedDeprecatedRules": Array [],
     "warningCount": 0,
   },
 ]
@@ -918,54 +760,82 @@ Miscellaneous:
 
 exports[`runs with -o eslint.txt 1`] = `
 "[0m[0m
-[0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[4m/src/main/ts/cli.ts[24m[0m
+[0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
 [0m[0m
-[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
-[0m[31m[1m[22m[39m[0m"
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m17:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m82:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[33m[1m✖ 3 problems (0 errors, 3 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m"
 `;
 
-exports[`runs with -v 1`] = `"v8.20.0"`;
+exports[`runs with -v 1`] = `"v8.29.0"`;
 
 exports[`runs with directory 1`] = `
 "[0m[0m
-[0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[4m/src/main/ts/cli.ts[24m[0m
+[0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
 [0m[0m
-[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
-[0m[31m[1m[22m[39m[0m"
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m17:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m82:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[33m[1m✖ 3 problems (0 errors, 3 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m"
 `;
 
 exports[`runs with directory and ext 1`] = `
 "[0m[0m
-[0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[4m/src/main/ts/cli.ts[24m[0m
+[0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
 [0m[0m
-[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
-[0m[31m[1m[22m[39m[0m"
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m17:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m82:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[33m[1m✖ 3 problems (0 errors, 3 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m"
 `;
 
-exports[`runs with file 1`] = `""`;
+exports[`runs with file 1`] = `
+"[0m[0m
+[0m[4m/src/main/ts/cli.ts[24m[0m
+[0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
+[0m[0m
+[0m[33m[1m✖ 1 problem (0 errors, 1 warning)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m"
+`;
 
 exports[`runs with pattern 1`] = `
 "[0m[0m
-[0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[4m/src/main/ts/cli.ts[24m[0m
+[0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
 [0m[0m
-[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
-[0m[31m[1m[22m[39m[0m"
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m17:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m82:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[33m[1m✖ 3 problems (0 errors, 3 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m"
 `;
 
 exports[`runs with pattern root, ext and ignore pattern 1`] = `
 "[0m[0m
-[0m[4m/src/main/ts/index.ts[24m[0m
-[0m  [2m167:10[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
-[0m  [2m181:12[22m  [31merror[39m  Expected the Promise rejection reason to be an Error  [2mprefer-promise-reject-errors[22m[0m
+[0m[4m/extra-types/npmcli__spawn-promise/index.d.ts[24m[0m
+[0m  [2m28:28[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m28:33[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m33:28[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m33:33[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m[0m
-[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
-[0m[31m[1m[22m[39m[0m"
+[0m[4m/src/main/ts/cli.ts[24m[0m
+[0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
+[0m[0m
+[0m[4m/src/main/ts/index.ts[24m[0m
+[0m  [2m17:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m82:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[33m[1m✖ 7 problems (0 errors, 7 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m"
 `;
