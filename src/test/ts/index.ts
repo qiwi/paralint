@@ -1,4 +1,4 @@
-// @ts-ignore
+import '../../main/ts/promise-spawn.d.ts'
 import spawn from '@npmcli/promise-spawn'
 import { expect } from 'earljs'
 import { readFile } from 'node:fs/promises'
@@ -102,7 +102,7 @@ test('runs with -o eslint.txt', async () => {
   await temporaryFileTask(
     async (file) => {
       await paralint([srcPattern, '-o', file])
-      const content = (await readFile(file)).toString()
+      const content = await readFile(file, 'utf8')
       expect(fix(content)).toMatchSnapshot()
     },
     { name: 'eslint.txt' },
@@ -113,7 +113,7 @@ test('runs with --format json and --output-file eslint.json', async () => {
   await temporaryFileTask(
     async (file) => {
       await paralint([srcPattern, '--format', 'json', '--output-file', file])
-      const content = (await readFile(file)).toString()
+      const content = await readFile(file, 'utf8')
       expect(json(fix(content))).toMatchSnapshot()
     },
     { name: 'eslint.json' },

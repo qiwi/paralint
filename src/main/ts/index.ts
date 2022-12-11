@@ -1,4 +1,4 @@
-// @ts-ignore
+import './promise-spawn.d.ts'
 import spawn from '@npmcli/promise-spawn'
 import dargs from 'dargs'
 import fg from 'fast-glob'
@@ -38,7 +38,7 @@ const compatibleFormats = [
 const isDirectory: (path: string) => boolean = (path) => {
   try {
     return statSync(path).isDirectory()
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -106,12 +106,12 @@ const getFormatted: (
         ? result.value.stdout
         : result.reason.stdout,
     )
-    .filter((out) => out)
+    .filter(Boolean)
     .sort()
   if (format === 'json') {
     return `[${outs
-      .map((out) => out.substring(1, out.length - 1))
-      .filter((out) => out)
+      .map((out) => out.slice(1, -1))
+      .filter(Boolean)
       .join(',')}]`
   }
   return outs.join('\n')
@@ -146,7 +146,7 @@ const getArgs: (args: string[]) => ParaLintArgs = (args) => {
   }
 }
 
-const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
+const lint: (args: ParaLintArgs) => Promise<void> = async (args) => {
   const { format, outputFile, concurrency, argv } = args
   const files = getFiles(args)
   const results = await getResults(
@@ -161,24 +161,25 @@ const lint: (args: ParaLintArgs) => Promise<any> = async (args) => {
     console.log(formatted)
   }
   if (results.every(({ status }) => status === 'fulfilled')) {
-    return Promise.resolve()
+    return
   }
-  // eslint-disable-next-line prefer-promise-reject-errors
-  return Promise.reject()
+
+  const err = results.find(({status}) => status === 'rejected') as PromiseRejectedResult
+  throw new Error(err?.reason)
 }
 
-export const main: (argv: string[]) => Promise<any> = async (argv) => {
+export const main: (argv: string[]) => Promise<void> = async (argv) => {
   const args = getArgs(argv)
   const { help, version, format } = args
   if (help || version) {
     const res = await spawn('eslint', dargs({ version, help }))
     console.log(res.stdout)
-    return Promise.resolve()
+    return
   }
   if (!compatibleFormats.includes(format)) {
-    console.error(`format ${format} is not supported yet`)
-    // eslint-disable-next-line prefer-promise-reject-errors
-    return Promise.reject()
+    const msg = `format ${format} is not supported yet`
+    console.error(msg)
+    throw new Error(msg)
   }
   return lint(args)
 }
