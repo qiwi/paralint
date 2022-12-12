@@ -823,12 +823,6 @@ exports[`runs with pattern 1`] = `
 
 exports[`runs with pattern root, ext and ignore pattern 1`] = `
 "[0m[0m
-[0m[4m/extra-types/npmcli__spawn-promise/index.d.ts[24m[0m
-[0m  [2m28:28[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
-[0m  [2m28:33[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
-[0m  [2m33:28[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
-[0m  [2m33:33[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
-[0m[0m
 [0m[4m/src/main/ts/cli.ts[24m[0m
 [0m  [2m7:4[22m  [33mwarning[39m  Prefer top-level await over using a promise chain  [2municorn/prefer-top-level-await[22m[0m
 [0m[0m
@@ -836,6 +830,6 @@ exports[`runs with pattern root, ext and ignore pattern 1`] = `
 [0m  [2m17:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m  [2m82:24[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m[0m
-[0m[33m[1m✖ 7 problems (0 errors, 7 warnings)[22m[39m[0m
+[0m[33m[1m✖ 3 problems (0 errors, 3 warnings)[22m[39m[0m
 [0m[33m[1m[22m[39m[0m"
 `;
