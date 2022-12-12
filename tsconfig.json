@@ -22,8 +22,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "incremental": true,
-    "tsBuildInfoFile": "./buildcache/.tsbuildinfo",
-    "typeRoots": ["./extra-types", "node_modules/@types"]
+    "tsBuildInfoFile": "./buildcache/.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
