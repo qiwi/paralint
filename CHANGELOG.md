@@ -1,3 +1,8 @@
+## [1.2.1](https://github.com/qiwi/paralint/compare/v1.2.0...v1.2.1) (2023-05-26)
+
+### Fixes & improvements
+* perf: up deps ([2f28772](https://github.com/qiwi/paralint/commit/2f287723b2d9c33e0523e2f62a4c224a00784842))
+
 ## [1.2.0](https://github.com/qiwi/paralint/compare/v1.1.2...v1.2.0) (2022-11-25)
 
 ### Features
