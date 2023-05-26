@@ -329,26 +329,26 @@ Basic configuration:
   --parser-options Object         Specify parser options
   --resolve-plugins-relative-to path::String  A folder where plugins should be resolved from, CWD by default
 
-Specifying rules and plugins:
+Specify Rules and Plugins:
   --plugin [String]               Specify plugins
   --rule Object                   Specify rules
   --rulesdir [path::String]       Load additional rules from this directory. Deprecated: Use rules from plugins
 
-Fixing problems:
+Fix Problems:
   --fix                           Automatically fix problems
   --fix-dry-run                   Automatically fix problems without saving the changes to the file system
   --fix-type Array                Specify the types of fixes to apply (directive, problem, suggestion, layout)
 
-Ignoring files:
+Ignore Files:
   --ignore-path path::String      Specify path of ignore file
   --no-ignore                     Disable use of ignore files and patterns
   --ignore-pattern [String]       Pattern of files to ignore (in addition to those in .eslintignore)
 
-Using stdin:
+Use stdin:
   --stdin                         Lint code provided on <STDIN> - default: false
   --stdin-filename String         Specify filename to process STDIN as
 
-Handling warnings:
+Handle Warnings:
   --quiet                         Report errors only - default: false
   --max-warnings Int              Number of warnings to trigger nonzero exit code - default: -1
 
@@ -378,7 +378,7 @@ Miscellaneous:
   --print-config path::String     Print the configuration for the given file"
 `;
 
-exports[`runs with --version 1`] = `"v8.29.0"`;
+exports[`runs with --version 1`] = `"v8.41.0"`;
 
 exports[`runs with -f html 1`] = `"format html is not supported yet"`;
 
@@ -709,26 +709,26 @@ Basic configuration:
   --parser-options Object         Specify parser options
   --resolve-plugins-relative-to path::String  A folder where plugins should be resolved from, CWD by default
 
-Specifying rules and plugins:
+Specify Rules and Plugins:
   --plugin [String]               Specify plugins
   --rule Object                   Specify rules
   --rulesdir [path::String]       Load additional rules from this directory. Deprecated: Use rules from plugins
 
-Fixing problems:
+Fix Problems:
   --fix                           Automatically fix problems
   --fix-dry-run                   Automatically fix problems without saving the changes to the file system
   --fix-type Array                Specify the types of fixes to apply (directive, problem, suggestion, layout)
 
-Ignoring files:
+Ignore Files:
   --ignore-path path::String      Specify path of ignore file
   --no-ignore                     Disable use of ignore files and patterns
   --ignore-pattern [String]       Pattern of files to ignore (in addition to those in .eslintignore)
 
-Using stdin:
+Use stdin:
   --stdin                         Lint code provided on <STDIN> - default: false
   --stdin-filename String         Specify filename to process STDIN as
 
-Handling warnings:
+Handle Warnings:
   --quiet                         Report errors only - default: false
   --max-warnings Int              Number of warnings to trigger nonzero exit code - default: -1
 
@@ -771,7 +771,7 @@ exports[`runs with -o eslint.txt 1`] = `
 [0m[33m[1m[22m[39m[0m"
 `;
 
-exports[`runs with -v 1`] = `"v8.29.0"`;
+exports[`runs with -v 1`] = `"v8.41.0"`;
 
 exports[`runs with directory 1`] = `
 "[0m[0m
